@@ -62,17 +62,25 @@
 
 
 
-(defn flatten-sub-index [char-set]
+(defn flatten-sub-index [char-set ]
+  (let [flatten-sub-index-memo (memoize flatten-sub-index)]
+    (do
+      (println "asdf")
+      (if (= 1 (count char-set))
+        (list char-set) 
+        (map #(concat % (list (last char-set)))
+             (reduce #(concat %1 %2) []
+                     (map flatten-sub-index-memo (extend-list char-set))))))))
+(def flatten-sub-index-memo (memoize flatten-sub-index))
+
+(defn flatten-sub-index [ f char-set]
   (do
     (println "asdf")
     (if (= 1 (count char-set))
       (list char-set) 
       (map #(concat % (list (last char-set)))
            (reduce #(concat %1 %2) []
-                   (map flatten-sub-index (extend-list char-set)))))))
-(def flatten-sub-index-memo (memoize flatten-sub-index))
-
-
+                   (map (f f)  (extend-list char-set)))))))
 
 
 

@@ -4,3 +4,9 @@ pom.xml
 /classes/
 /targets/
 .lein-deps-sum
+
+clojure/repl-port
+.*
+#*#
+
+clojure/#lib.clj#

@@ -10,4 +10,4 @@ t1 = datetime.date.today()
 
 delta_days = (t2 - t1).days
 
-print "到截止时间还有" ,delta_days, "天"
+print "亲，到截止时间还有" ,delta_days, "天思密达"
