@@ -17,8 +17,8 @@
     (fn ([line] (f (clojure.string/split (clojure.string/trim line) token)))
       ([] (f)))))
 
-(defn word-counter 
-  "单词计数, 空参数表返回结果"
+(defn dictionary-counter
+  "利用字典计数, 空参数表返回结果，闭包内有副作用"
   []
   (let [total-count (atom 0)
         words-count (atom {})]
@@ -28,6 +28,35 @@
                        (swap! words-count assoc word (inc (@words-count word)))
                        (swap! words-count assoc word 1)))))
       ([] (list @total-count @words-count)))))
+
+(defn 2-gram-counter
+  ""
+  ;;TODO 这里2-gram怎么处理？
+  []
+  (let [2-gram-table (atom {})]))
+
+;;重命名函数，方便别处使用
+(def word-counter dictionary-counter)
+
+(defn list-counter
+  "利用列表计数，空参数表返回计数结果，闭包内有副作用"
+  []
+  (let [total-count (atom 0)
+        coll (atom ())]
+    (fn ([items]
+          (doseq [item items]
+            ;;TODO 注意，这里是否需要判断list有无重复项目？
+            (do (swap! total-count inc)
+                (swap! coll concat item))))
+      ([] (list @total-count @coll)))))
+
+;;目前有问题
+(comment (defn simple-count
+           "简单计数，空参数返回计数结果，闭包内有副作用"
+           []
+           (let [total (atom 0)]
+             (fn (swap! total inc)))))
+
 
 (defn entropy [count, total]
   "信息熵计算"
@@ -41,46 +70,78 @@
       (for [[k v] (second (f))]
         (list k (entropy v total))))))
 
-
 (defn find-new-word [file-name]
+  ""
+  (let [count-one-line (closure-count-by-line dictionary-counter list-counter)]
+    (do (process-file-by-lines file-name count-one-line)
+        (let [[[words-count words-count-table]
+               [suffix-count suffix-list]
+               [reverse-suffix-count reverse-suffix-list]]
+              (probability-f)
+              ]
+          ;;TODO here we go!
+          ))))
+
+(defn closure-count-candidate-word [])
+
+(defn closure-count-by-line [word-counter suffix-counter]
+  (let [count-words (word-counter)
+        count-suffix (suffix-counter)
+        count-reverse-suffix (suffix-counter)]
+    (fn count-by-line
+      ([line]
+         (let [words (conj (clojure.string/split (clojure.string/trim line) #" ") "\n")
+               words-suffix (suffix-of-list words)
+               reverse-words-suffix
+               (suffix-of-list
+                (conj (clojure.string/split
+                       (-> line clojure.string/reverse clojure.string/trim)
+                       #" " )
+                      "\n"))]
+           ;;TODO 这里随后要改写成使用word-counter
+           (do
+             ;;统计单词数目
+             (count-words words)
+             ;;统计各后缀数目
+             (count-suffix words-suffix)
+             (count-reverse-suffix reverse-words-suffix))))
+      ([] (list (count-words) (count-suffix) (count-reverse-suffix))))))
+
+
+
+
+
+(defn statistic-word [all-the-sorted-suffix]
+  ;; TODO
   )
+(defn suffix-of-list [l]
+  ;;TODO 注意与Python版本的不同，还包括列表中最后一个元素单独出现的情况
+  (map reverse (extend-list (concat (reverse l) [true]))))
 
 
+
+;;小陶的算法验证，程序结果可知，组合的增长率为2^n，未验证程序是否正确
 (defn extend-list [char-set]
-  (map #(take (inc (.indexOf char-set %)) char-set)
-       (drop-last char-set)))
+  "扩展列表方法，可将(1 2 3)，扩展为((1) (1 2))"
+  (map #(take (inc (.indexOf char-set %)) char-set) (drop-last char-set)))
 
+(defn flatten-sub-index
+  "原始无优化版本"
+  [char-set]
+  (if (= 1 (count char-set))
+    (list char-set) 
+    (map #(concat % (list (last char-set)))
+         (reduce #(concat %1 %2) []
+                 (map flatten-sub-index (extend-list char-set))))))
 
-(defn sub-index [char-set]
-  (if (= () (rest char-set))
-    (list char-set)
-    (map (fn [new-char-set]
-           (map #(concat % (take-last 1 char-set)) 
-             (sub-index new-char-set)))
-         (extend-list char-set))))
-(def sub-index-memo (memoize sub-index))
-
-
-
-(defn flatten-sub-index [char-set ]
-  (let [flatten-sub-index-memo (memoize flatten-sub-index)]
-    (do
-      (println "asdf")
-      (if (= 1 (count char-set))
-        (list char-set) 
-        (map #(concat % (list (last char-set)))
-             (reduce #(concat %1 %2) []
-                     (map flatten-sub-index-memo (extend-list char-set))))))))
-(def flatten-sub-index-memo (memoize flatten-sub-index))
-
-(defn flatten-sub-index [ f char-set]
-  (do
-    (println "asdf")
-    (if (= 1 (count char-set))
+(defn flatten-sub-index
+  "带存储重复结果的算法"
+  [f char-set]
+  (if (= 1 (count char-set))
       (list char-set) 
       (map #(concat % (list (last char-set)))
            (reduce #(concat %1 %2) []
-                   (map (f f)  (extend-list char-set)))))))
+                   (map (partial f f) (extend-list char-set))))))
 
 
 
