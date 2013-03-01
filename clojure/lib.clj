@@ -144,12 +144,50 @@
                    (map (partial f f) (extend-list char-set))))))
 
 
+;;;这里是Google Group上Yanyi Wan给的
+(declare fm)
+(defn flatten-sub-index-two
+  [char-set]
+  (if (= 1 (count char-set))
+    (list char-set) 
+    (map #(concat % (list (last char-set)))
+         (reduce #(concat %1 %2) []
+                 (map fm (extend-list char-set))))))
+(def fm (memoize flatten-sub-index-two))
 
+(time (count (flatten-sub-index-two (range 1 19))))
+(time (count (flatten-sub-index (memoize flatten-sub-index) (range 1 19))))
 
+;;;这里根据上面，包装为一个函数
+(defn closure-flatten-sub-index-two [char-set]
+  (let [k (declare fm)
+        f (fn [char-set]
+            (if (= 1 (count char-set))
+              (list char-set) 
+              (map #(concat % (list (last char-set)))
+                   (reduce #(concat %1 %2) []
+                           (map fm (extend-list char-set))))))
+        j (def fm (memoize f))]
+    (f char-set)))
+(defn closure-flatten-sub-index-two [char-set]
+  (do
+    (declare fm)
+    (def f (fn [char-set]
+             (if (= 1 (count char-set))
+               (list char-set) 
+               (map #(concat % (list (last char-set)))
+                    (reduce #(concat %1 %2) []
+                            (map fm (extend-list char-set)))))))
+    (def fm (memoize f))
+    (f char-set)))
 
-
-
-
+(dotimes [n 5]
+  (time (count (closure-flatten-sub-index-two (range 1 19))))) 
+(dotimes [n 5]
+  (time (count (flatten-sub-index (memoize flatten-sub-index) (range 1 19)))))
+;;;TODO 测试可知，下面的实现在性能上快很多，第一次运算会较慢，为什么？
+(dotimes [n 5]
+  (time (count (flatten-sub-index-two (range 1 19)))))
 ;;CODE BELOW IS UNIT TEST
 (use 'clojure.test)
 (deftest 
