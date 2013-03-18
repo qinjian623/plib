@@ -1,0 +1,38 @@
+#+TITLE: 问题的可能解法与描述
+#+AUTHOR: 秦暕
+#+LATEX_HEADER: \usepackage{xeCJK}
+#+LATEX_HEADER: \setCJKmainfont{SimSun}
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [presentation]
+#+BEAMER_FRAME_LEVEL: 2
+#+BEAMER_HEADER_EXTRA: \usetheme{Antibes}\usecolortheme{lily}
+#+COLUMNS: %35ITEM %10BEAMER_env(Env) %10BEAMER_envargs(Args) %4BEAMER_col(Col) %8BEAMER_extra(Ex)
+* This is the first structural section
+     
+** Frame 1 \\ with a subtitle
+*** Thanks to Eric Fraga                                      :BMCOL:B_block:
+         :PROPERTIES:
+         :BEAMER_env: block
+         :BEAMER_envargs: C[t]
+         :BEAMER_col: 0.5
+         :END:
+         for the first viable beamer setup in Org
+*** Thanks to everyone else                                   :BMCOL:B_block:
+    :PROPERTIES:
+         :BEAMER_col: 0.5
+         :BEAMER_env: block
+         :BEAMER_envargs: <2->
+         :END:
+    for contributing to the discussion
+**** This will be formatted as a beamer note                         :B_note:
+** Frame 2 \\ where we will not use columns
+*** Request                                          :B_block:
+    Please test this stuff!
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+** FRame 3
+*** asdf
+    this is a test
+    
+*** googo
