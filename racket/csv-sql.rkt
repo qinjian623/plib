@@ -174,8 +174,24 @@
        (fields (list (field "NID") (field "STRNAME")))
        (values (list (value "1010") (value "haha"))))
       "c:\\short_test.csv" "t")
-()
-(list-ref (first (hash-ref (second (make-env "c:\\short_test.csv" "t")) "t"))
-          0)
+
+(list-ref (first (hash-ref (second (make-env "c:\\short_test.csv" "t")) "t")) 0)
 (take (hash-ref (second (make-env "c:\\short_test.csv" "t")) "t") 1)
 (map (lambda(x) (list-ref x 3)) (filter (lambda (x) (equal? (list-ref x 13) "东北菜"))  (read-csv-file "c:\\short_test.csv")))
+
+(define (cached-assoc xs n)
+  (letrec ([memo (make-vector n #f)]
+           [pos 0]
+           [f (lambda (v) (let ([r (vector-assoc v memo)])
+                           (if r
+                               r
+                               (let ([list-p (assoc v xs)])
+                                 (if list-p
+                                     (begin
+                                       (vector-set! memo pos list-p)
+                                       (if (= (+ pos 1) n)
+                                           (set! pos 0)
+                                           (set! pos (+ pos 1)))
+                                       list-p)
+                                     #f
+                                 )))))]) f))

@@ -188,6 +188,8 @@
 ;;;TODO 测试可知，下面的实现在性能上快很多，第一次运算会较慢，为什么？
 (dotimes [n 5]
   (time (count (flatten-sub-index-two (range 1 19)))))
+
+
 ;;CODE BELOW IS UNIT TEST
 (use 'clojure.test)
 (deftest 
@@ -196,5 +198,4 @@
 (sort #(> (last %1) (last %2)) (statistics-entropy "D:/tttsupersmall"))
 
 (run-all-tests)
-
 
