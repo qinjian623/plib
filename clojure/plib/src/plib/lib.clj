@@ -120,7 +120,6 @@
 
 
 
-<<<<<<< HEAD
 ;;小陶的算法验证，程序结果可知，组合的增长率为2^n，未验证程序是否正确
 (defn extend-list [char-set]
   "扩展列表方法，可将(1 2 3)，扩展为((1) (1 2))"
@@ -189,7 +188,6 @@
 ;;;TODO 测试可知，下面的实现在性能上快很多，第一次运算会较慢，为什么？
 (dotimes [n 5]
   (time (count (flatten-sub-index-two (range 1 19)))))
-=======
 (defn flatten-sub-index [char-set ]
   (do
     (if (= 1 (count char-set))
@@ -218,7 +216,8 @@
 
 
 
->>>>>>> memoize test sucessed
+
+
 ;;CODE BELOW IS UNIT TEST
 (use 'clojure.test)
 (deftest 
@@ -227,5 +226,4 @@
 (sort #(> (last %1) (last %2)) (statistics-entropy "D:/tttsupersmall"))
 
 (run-all-tests)
-
 
