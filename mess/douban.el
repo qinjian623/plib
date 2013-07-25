@@ -203,7 +203,10 @@
 (qjdb-set-channels)
 (qjdb-next-song)
 (qjdb-jump-song)
-
+;; solve problem "Variable binding depth exceeds max-specpdl-size",
+;; default value is 1080
+(setq max-specpdl-size 34000)
+(setq max-lisp-eval-depth 20000)
 ;;TODO
 (defun qjdb-like-song ())
 (defun qjdb-ban-song ())
