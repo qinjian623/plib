@@ -1,6 +1,5 @@
 #!/bin/python
 
-
 class Word():
     """docstring for Word"""
     def __init__(self, string, tag, offset):
@@ -182,3 +181,4 @@ if __name__ == '__main__':
     import sys
     file_string = sys.argv[1]
     main(file_string)
+    import os

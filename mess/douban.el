@@ -8,7 +8,8 @@
 
 (defconst douban-music-buffer-name "*Douban.FM*")
 (defconst douban-music-max-songs-list 5)
-(defconst douban-music-channels-url "http://www.douban.com/j/app/radio/channels")
+(defconst douban-music-channels-url
+  "http://www.douban.com/j/app/radio/channels")
 
 ;; From http://blog.yanunon.com/2012/07/download-douban-fm-liked.html
 (defconst douban-music-get-song-list-url "http://www.douban.com/j/app/radio/people?app_name=radio_desktop_win&version=100&channel=%s&type=n")
@@ -39,8 +40,11 @@
   (url-retrieve
    picture-url
    (lambda (s)
-     (let ((img (create-image (qjdb-split-http-header (buffer-string)) nil 'f)))
-       (with-current-buffer (get-buffer-create  douban-music-buffer-name)
+     (let((img
+           (create-image
+            (qjdb-split-http-header (buffer-string)) nil 'f)))
+       (with-current-buffer
+           (get-buffer-create  douban-music-buffer-name)
          (insert-image img))))))
 
 (defun qjdb-display-info (title album artist picture-url)
@@ -87,15 +91,15 @@
     (url-retrieve-synchronously url)))
 
 (qjdb-parse-login-info-json
- (with-current-buffer (my-url-http-post douban-music-login-url
-                                        (list
-                                         '("username" . "qinjian623")
-                                         '("password" . "19880623")
-                                         '("version" . "608")
-                                         '("app_name" . "radio_android")
-                                         '("from" . "android_608_Google")
-                                         '("client" . "s:mobile|y:android 4.1.1|f:608|m:Google|d:-1178839463|e:google_galaxy_nexus"))
-                                        )
+ (with-current-buffer
+     (my-url-http-post douban-music-login-url
+                       (list
+                        '("username" . "qinjian623")
+                        '("password" . "19880623")
+                        '("version" . "608")
+                        '("app_name" . "radio_android")
+                        '("from" . "android_608_Google")
+                        '("client" . "s:mobile|y:android 4.1.1|f:608|m:Google|d:-1178839463|e:google_galaxy_nexus")))
    (qjdb-split-http-header (buffer-string))))
 
 
@@ -107,7 +111,8 @@
 
 (defun qjdb-get-channels-from-web ()
   (qjdb-parse-channels-json
-   (with-current-buffer (douban-music-send-url douban-music-channels-url)
+   (with-current-buffer
+       (douban-music-send-url douban-music-channels-url)
      (qjdb-split-http-header (buffer-string)))))
 
 (defun qjdb-set-channels()
@@ -125,7 +130,8 @@
 (defun qjdb-get-songs-from-web (channel-number)
   (qjdb-parse-songs-json
    (with-current-buffer
-       (douban-music-send-url (format douban-music-get-song-list-url channel-number))
+       (douban-music-send-url
+        (format douban-music-get-song-list-url channel-number))
      (qjdb-split-http-header (buffer-string)))))
 
 (defun qjdb-set-songs (channel-number)
@@ -135,15 +141,17 @@
     (setq douban-music-current-song 0)))
 
 
-(defun douban-music-send-url (url &optional url-args callback callback-args)
+(defun douban-music-send-url
+  (url &optional url-args callback callback-args)
   "Fetch data from douban music server."
   (let ((url-request-method "GET"))
     (if url-args
-        (setq url-request-data (mapconcat #'(lambda (arg)
-                                              (concat (url-hexify-string (car arg))
-                                                      "="
-                                                      (url-hexify-string (cdr arg))))
-                                          url-args "&")))
+        (setq url-request-data
+              (mapconcat #'(lambda (arg)
+                             (concat (url-hexify-string (car arg))
+                                     "="
+                                     (url-hexify-string (cdr arg))))
+                         url-args "&")))
     (if callback
         (url-retrieve url callback callback-args)
       (url-retrieve-synchronously url))))
@@ -186,7 +194,9 @@
         (qjdb-play-song song-url)
         (setq douban-music-current-song
               (+ 1 douban-music-current-song))))))
-
+(defun qjdb-current-song-info ()
+  (nth douban-music-current-song douban-music-songs))
+(qjdb-current-song-info)
 (defun qjdb-jump-song ()
   (progn
     (qjdb-set-songs douban-music-current-channel)
@@ -196,7 +206,7 @@
 ;;(setq douban-music-current-song 1)
 ;;(douban-music-songs)
 
-;; Add the hook to play the next song after finished current song. 
+;; Add the hook to play the next song after current song finished. 
 (add-hook 'emms-player-finished-hook
           'qjdb-next-song)
 
