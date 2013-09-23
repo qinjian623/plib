@@ -64,20 +64,17 @@ class CloudDownloadMonitor(object):
             pass
         pass
 
-    def query_task():
+    def query_task(self, taks_id):
         pass
 
-    def send_message():
+    def send_message(self, message):
         for messager in self._messagers:
             pass
-        pass
 
 def main():
     downloader     = CloudDownload()
     request_caller = RequestCore()
     downloader.download(request_caller, "/home/qin/links")
-
-
 
 if __name__ == '__main__':
     main()
