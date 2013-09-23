@@ -22,7 +22,7 @@ class RequestCore(object):
         conn.request("POST", url, urllib.urlencode(params), headers)
         response = conn.getresponse()
         response_string =  response.read()
-        return json.loads(response_string);
+        return json.loads(response_string)
 
 def main():
     params   = {'method':'info',
@@ -30,7 +30,7 @@ def main():
     url      = "/rest/2.0/pcs/quota"
     r        = RequestCore()
     json_var = r.POST(url, params)
-    
+
     print json.dumps(json_var,
                      sort_keys=True,
                      indent=4,
