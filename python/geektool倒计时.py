@@ -5,7 +5,7 @@
 import datetime
 
 
-t2 = datetime.date(2013,06,23)
+t2 = datetime.date(2013,10,23)
 t1 = datetime.date.today()
 
 delta_days = (t2 - t1).days

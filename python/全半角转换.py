@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/bin/python
+#!/bin/python3
 '''
 全角/半角 转换工具
 转换表如下,不含日/韩文:
