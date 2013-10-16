@@ -1,0 +1,17 @@
+{
+    "global" :{
+        "host":"www.mapbar.com",
+        "version":"latest"
+    },
+    "packages" : [
+        {
+            "host"     :"localhost",
+            "repo"     :"com.mapbar.qinjian.tools",
+            "user"     :"inbox",
+            "password" :"111qqq,,,",
+            "version"  :"latest",
+            "local_folder":"./lib",
+            "stable": "stable"
+        }
+    ]
+}
