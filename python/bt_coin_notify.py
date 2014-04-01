@@ -1,6 +1,8 @@
 import pynotify
 import sys
 import httplib
+import sched
+import time
 
 RealTimeHUOBI_bt_url = "/staticmarket/td.html"
 RealTimeHUOBI_lite_url = "/staticmarket/td_ltc.html"
@@ -53,12 +55,27 @@ class HuobiFetcher():
         conn = httplib.HTTPConnection(self.HUOBI_domain)
         conn.request("GET", url)
         r1 = conn.getresponse()
+        print r1.reason
         return r1.read().split('\n')
 
 
-f = HuobiFetcher()
-ltc = f.fetcher(RealTimeHUOBI_lite_url)
-btc = f.fetcher(RealTimeHUOBI_bt_url)
+def huobiRealtimeLTC():
+    f = HuobiFetcher()
+    ltc = f.fetcher(RealTimeHUOBI_lite_url)
+    btc = f.fetcher(RealTimeHUOBI_bt_url)
+    if len(ltc) == 0 or len(btc) == 0:
+        return
+    ltc_value = ltc[-1].split(",")[1]
+    btc_value = btc[-1].split(",")[1]
 
-send_notification(ltc[1] + "/" + btc[1],
-                  ltc[2] + "/" + btc[2])
+    send_notification(ltc[1] + "/" + btc[1],
+                      ltc_value + "/" + btc_value)
+
+
+def schedule_loop():
+    while True:
+        s = sched.scheduler(time.time, time.sleep)
+        s.enter(1, 1, huobiRealtimeLTC, ())
+        s.run()
+
+schedule_loop()
