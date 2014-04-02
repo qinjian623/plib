@@ -10,41 +10,42 @@ ReatTimeOKCOIN_bt_url = None
 ReatTimeOKCOIN_lite_url = None
 
 
-def notify_linux(title, message):
-    pynotify.init("Basic")
-    notice = pynotify.Notification(
-        title,
-        message
-    ).show()
-    return notice
+## TODO a
+class MacNotify():
+    def __init__(self):
+        pass
+
+    def show(self, title, message):
+        pass
 
 
-## TODO Will use the apple script
-def notify_mac(title, message):
-    pass
+class LinuxNotify():
+    def __init__(self, name):
+        pynotify.init(name)
+        self.__notice = None
 
+    def show(self, title, message, update=True):
+        if self.__notice is None:
+            self.__notice = pynotify.Notification(title, message)
+            return self.__notice.show()
 
-## TODO
-def notify_win32(title, message):
-    pass
+        if update:
+            self.__notice.update(title, message)
+        else:
+            self.__notice = pynotify.Notification(title, message)
+        return self.__notice.show()
 
 ## We don't plan to support any other oses.
-system_name_table = {"linux2": notify_linux,
-                     "win32":  notify_win32,
+system_name_table = {"linux2": lambda x: LinuxNotify(x),
+                     "win32":  None,
                      "cygwin": None,
-                     "darwin": notify_mac}
+                     "darwin": lambda x: MacNotify(x)}
 
 
-def get_the_system_name():
-    return sys.platform
-
-
-def send_notification(title, message):
-    f = system_name_table[get_the_system_name()]
-    if f is None:
-        return False
-    f(title, message)
-    return True
+def createdNotification(name):
+    def get_the_system_name():
+        return sys.platform
+    return system_name_table[get_the_system_name()](name)
 
 
 class HuobiFetcher():
@@ -55,27 +56,27 @@ class HuobiFetcher():
         conn = httplib.HTTPConnection(self.HUOBI_domain)
         conn.request("GET", url)
         r1 = conn.getresponse()
-        print r1.reason
         return r1.read().split('\n')
 
 
-def huobiRealtimeLTC():
-    f = HuobiFetcher()
+def huobiRealtimeLTC(n, f):
     ltc = f.fetcher(RealTimeHUOBI_lite_url)
     btc = f.fetcher(RealTimeHUOBI_bt_url)
-    if len(ltc) == 0 or len(btc) == 0:
+    if ltc[-1].strip() == '' or btc[-1].strip() == '':
         return
     ltc_value = ltc[-1].split(",")[1]
     btc_value = btc[-1].split(",")[1]
-
-    send_notification(ltc[1] + "/" + btc[1],
-                      ltc_value + "/" + btc_value)
+    n.show("HUOBI-LTC / HUOBI_BTC",
+           ltc_value + "/" + btc_value)
 
 
 def schedule_loop():
+    f = HuobiFetcher()
+    n = createdNotification("HuobiInfo")
+
     while True:
         s = sched.scheduler(time.time, time.sleep)
-        s.enter(1, 1, huobiRealtimeLTC, ())
+        s.enter(10, 1, huobiRealtimeLTC, (n, f))
         s.run()
 
 schedule_loop()
