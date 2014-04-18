@@ -1,4 +1,4 @@
-import pynotify
+import os
 import sys
 import httplib
 import sched
@@ -9,18 +9,31 @@ RealTimeHUOBI_lite_url = "/staticmarket/td_ltc.html"
 ReatTimeOKCOIN_bt_url = None
 ReatTimeOKCOIN_lite_url = None
 
-
-## TODO a
-class MacNotify():
-    def __init__(self):
+## TODO Don't need yet.
+class Win32Notify():
+    def __init__(self, name):
         pass
-
+        
     def show(self, title, message):
         pass
 
+## Use the apple script interface
+class MacNotify():
+    notification_string = """osascript -e 'display notification "{}" with title "{}"'
+    """
+    def __init__(self, name):
+        pass
 
+    def show(self, title, message):
+        output_string = self.notification_string.format(message, title)
+        # Naive os.system.
+        # May be a better way.
+        os.system(output_string)
+
+## Use the pynotify lib
 class LinuxNotify():
     def __init__(self, name):
+        import pynotify
         pynotify.init(name)
         self.__notice = None
 
@@ -66,6 +79,7 @@ def huobiRealtimeLTC(n, f):
         return
     ltc_value = ltc[-1].split(",")[1]
     btc_value = btc[-1].split(",")[1]
+    
     n.show("HUOBI-LTC / HUOBI_BTC",
            ltc_value + "/" + btc_value)
 
