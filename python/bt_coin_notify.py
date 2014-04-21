@@ -38,6 +38,7 @@ class LinuxNotify():
         self.__notice = None
 
     def show(self, title, message, update=True):
+	import pynotify
         if self.__notice is None:
             self.__notice = pynotify.Notification(title, message)
             return self.__notice.show()
