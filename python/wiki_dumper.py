@@ -3,7 +3,6 @@
 import urllib2
 import thread
 import time
-import gevent
 import Queue
 import sys
 import logging
