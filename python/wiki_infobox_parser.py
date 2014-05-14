@@ -32,6 +32,7 @@ class WikiCatlinksParser():
 
 class WikiTitleParser():
     def parse(self, tree):
+        //这里过于简单处理，存在title中本身就存在-
         nodes = tree.xpath("//title")
         return "".join(["".join(node.itertext()).split('-')[0].strip()
                         for node in nodes])
