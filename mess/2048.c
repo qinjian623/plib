@@ -10,30 +10,161 @@ typedef int direction;
 #define DOWN 4
 
 typedef int boolean;
-#define true 1;
-#define false 0;
+#define true 1
+#define false 0
+
+typedef int (*iter_fun)(int*, int*, boolean*);
 
 int board[K][K];
 int cell_width = 6;
 
-void print_board(){
-	printf ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+int row_iter(int row_start, int col_start, iter_fun f){
+	for (int i = row_start; i < K; ++i){
+		for(int j = col_start; j < K; ++j){
+			boolean need_return = false;
+			int ret = (* f)(&i, &j, &need_return);
+			if (need_return == true){
+				return ret;
+			}
+		}
+	}
+}
+
+int col_iter(int row_start, int col_start, iter_fun f){
+	for (int i = col_start; i < K; ++i){
+		for(int j = row_start; j < K; ++j){
+			boolean need_return = false;
+			int ret = (*f)(&j, &i, &need_return);
+			if (need_return == true){
+				return ret;
+			}
+		}
+	}
+}
+
+int can_move_up(int* i, int* j, boolean* need_return){
+	int row = *i;
+	int col = *j;
+	if (row != 0 && board[row][col] != 0){
+		*need_return = true;
+		return true;
+	}
+}
+
+int can_move_down(int* i, int* j, boolean* need_return){
+	int row = *i;
+	int col = *j;
+	if (row != 0 && board[row][col] == 0
+	    && board[row-1][col] != 0){
+		*need_return = true;
+		return true;
+	}	
+}
+
+int can_move_right(int* i, int* j, boolean* need_return){
+	int row = *i;
+	int col = *j;
+	if (col != 0 && board[row][col] == 0
+		&& board[row][col - 1] != 0){
+		*need_return = true;
+		return true;
+	}	
+}
+
+int can_move_left(int* i, int* j, boolean* need_return){
+	int row = *i;
+	int col = *j;
+	if (col != 0 && board[row][col] != 0){
+		*need_return = true;
+		return true;
+	}	
+}
+
+boolean can_move_row(direction d){
 	for (int i = 0; i < K; ++i){
-		for (int j = 0; j < K; ++j){
+		for(int j = 0; j < K; ++j){
+			if (j != 0 && board[i][j] != 0){
+				if (d == LEFT){
+					return true;
+				}
+			}
+			if (j != 0 && board[i][j] == 0
+			    && board[i][j - 1] != 0){
+				if (d == RIGHT){
+					return true;
+				}
+			}
+		}
+	}
+	return false;	
+}
+boolean can_move_col(direction d){
+	for (int i = 0; i < K; ++i){
+		for(int j = 0; j < K; ++j){
+			if (j != 0 && board[j][i] != 0){
+				if (d == UP){
+					return true;
+				}
+			}
+			if (j != 0 && board[j][i] == 0
+			    && board[j - 1][i] != 0){
+				if (d == DOWN){
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+boolean can_move(direction d){
+	switch (d){
+	case UP:
+		return col_iter(0, 0, can_move_up);
+	case DOWN:
+		return col_iter(0, 0, can_move_down);
+		//return can_move_col(d);
+	case RIGHT:
+		return row_iter(0, 0, can_move_right);
+	case LEFT:
+		return row_iter(0, 0, can_move_left);
+		//return can_move_row(d);
+	default:
+		return false;
+	}
+}
+boolean can_merge(direction d){
+	
+}
+int print_board_f(int* i, int* j, boolean* need_return){
+	int row = *i;
+	int col = *j;
+	if (col == 0){
+		for (int k = 0; k < K; ++k){
 			printf("|------");
 		}
 		printf("|\n");
-		for (int j = 0; j < K; ++j){
-			printf("|%5d ", board[i][j]);
+	}
+	printf("|%5d ", board[row][col]);
+	if (col == K-1){
+		printf("\n");
+	}
+	if (row == K-1 && col == K-1){
+		for (int k = 0; k < K; ++k){
+			printf("|------");
 		}
-		printf("|\n");
-		
+		printf("|");
 	}
-	for (int j = 0; j < K; ++j){
-		printf("|------");
-	}
-	printf("|\n");
+	return 0;
 }
+
+void print_board(){
+	printf ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	row_iter(0, 0, print_board_f);
+}
+
+
+
 void merge_cells_col(direction d){
 	for(int i = 0; i < K; ++i){
 		for (int j = 0; j < K - 1; ++j){
@@ -99,10 +230,12 @@ void fill_empty_cells_up(direction d){
 			if (board[k][i] != 0){
 				board[j][i] = board[k][i];
 				board[k][i] = 0;
+				j++;
 			}
 		}
 	}
 }
+
 /* TODO 这里的处理比较复杂 */
 void fill_empty_cells_left(direction d){
 	for (int i = 0; i < K; ++i){
@@ -114,6 +247,7 @@ void fill_empty_cells_left(direction d){
 			if (board[i][k] != 0){
 				board[i][j] = board[i][k];
 				board[i][k] = 0;
+				j++;
 			}
 		}
 	}
@@ -129,6 +263,7 @@ void fill_empty_cells_down(direction d){
 			if (board[k][i] != 0){
 				board[j][i] = board[k][i];
 				board[k][i] = 0;
+				j--;
 			}
 		}
 	}
@@ -144,6 +279,7 @@ void fill_empty_cells_right(direction d){
 			if (board[i][k] != 0){
 				board[i][j] = board[i][k];
 				board[i][k] = 0;
+				j--;
 			}
 		}
 	}
@@ -167,79 +303,34 @@ void fill_empty_cells(direction d){
 }
 
 
-boolean can_move_col(direction d){
-	for (int i = 0; i < K; ++i){
-		for(int j = 0; j < K; ++j){
-			if (j != 0 && board[j][i] != 0){
-				if (d == UP){
-					return true;
-				}
-			}
-			if (j != 0 && board[j][i] == 0
-			    && board[j - 1][i] != 0){
-				if (d == DOWN){
-					return true;
-				}
-			}
-		}
-	}
-	return false;
-}
 
-boolean can_move_row(direction d){
-	for (int i = 0; i < K; ++i){
-		for(int j = 0; j < K; ++j){
-			if (j != 0 && board[i][j] != 0){
-				if (d == LEFT){
-					return true;
-				}
-			}
-			if (j != 0 && board[i][j] == 0
-			    && board[i][j - 1] != 0){
-				if (d == RIGHT){
-					return true;
-				}
-			}
-		}
-	}
-	return false;	
-}
 
-boolean can_move(direction d){
-	switch (d){
-	case UP:
-	case DOWN:
-		return can_move_col(d);
-	case RIGHT:
-	case LEFT:
-		return can_move_row(d);
-	default:
+
+
+
+boolean is_full_f(int* i, int* j, boolean* need_return){
+	if (board[*i][*j] == 0){
+		(*need_return) = true;
 		return false;
 	}
-}
-
-void move(direction d){
-	merge_cells(d);
-	if (can_move(d)){
-		fill_empty_cells(d);
-	}else{
-		return;
+	if ((*i) == (*j) && (*i) == (K -1)){
+		(*need_return) = true;
+		return true;
 	}
 }
-
-
 
 boolean board_is_full(){
-	for (int i = 0; i < K; ++i){
-		for (int j = 0; j < K; ++j){
-			if (board[i][j] == 0){
-				return false;
-			}
-		}
-	}
-	return true;
+	return row_iter(0, 0, is_full_f);
 }
 
+
+
+boolean move(direction d){
+	fill_empty_cells(d);
+	merge_cells(d);
+	fill_empty_cells(d);
+	return true;
+}
 
 
 direction get_key(){
@@ -247,18 +338,20 @@ direction get_key(){
 	c = getchar();
 	c = getchar();
 	printf("%d\n", c);
-	getchar();
-	switch(c){
-	case 65:
-		return UP;
-	case 66:
-		return DOWN;
-	case 67:
-		return RIGHT;
-	case 68:
-		return LEFT;
-	default:
-		return -1;
+	while(1){
+		getchar();
+		switch(c){
+		case 65:
+			return UP;
+		case 66:
+			return DOWN;
+		case 67:
+			return RIGHT;
+		case 68:
+			return LEFT;
+		default:
+			continue;
+		}
 	}
 }
 
@@ -276,7 +369,10 @@ void put_new_number(){
 
 boolean loop(){
 	direction d = get_key();
-	move(d);
+	boolean moved = move(d);
+	if (!moved){
+		return true;
+	}
 	if (board_is_full()){
 		return false;
 	}else{
