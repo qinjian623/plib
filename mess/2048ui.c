@@ -29,11 +29,15 @@ direction get_key(){
 	return ret;
 }
 
+void display_score(){
+	mvwprintw(score_win, 1, 1, "  Score: %ld", get_score());
+	wrefresh(score_win);
+}
+
 void init_score_win(){
 	score_win = newwin(3, 20, 0, 0);
 	box(score_win, 0, 0);
-	mvwprintw(score_win, 1, 1, "  Score: %ld", get_score());
-	wrefresh(score_win);
+	display_score();
 }
 
 void init_board_win(){
@@ -46,18 +50,13 @@ void init_board_win(){
 	}
 }
 
-void display_score(){
-	mvwprintw(score_win, 1, 1, "  Score: %ld", get_score());
-	wrefresh(score_win);
-}
-
 void display_board(){
 	for (int i = 0; i < K; ++i){
 		for (int j = 0; j < K; ++j){
 			int idx = index(board[i][j]);
 			WINDOW* win = board_win[i][j];
 			wattron(win, COLOR_PAIR(idx)); 
-			mvwprintw(win, 0, 0, "%2d", board[i][j]);
+			mvwprintw(win, 0, 0, "%4d", board[i][j]);
 			wattroff(win, COLOR_PAIR(idx));
 			wrefresh(win);
 		}
@@ -103,7 +102,6 @@ void redisplay(){
 
 int main(){
 	direction d;
-	getchar();
 	init();
 	put_new_number();
 	put_new_number();
@@ -118,54 +116,8 @@ int main(){
 			break;
 		}
 	}
-/* 	WINDOW *win = newwin(80, 80, 1, 1); */
-/* 	wborder(win, '|', '|', '-', '-', '+', '+', '+', '+'); */
-/* 	wrefresh(win); */
-/* 	get_key(); */
-/* 	for (int i = 1; i < 12; ++i){ */
-/* 		wattron(win, COLOR_PAIR(i)); */
-/* 		wprintw(win, "ASDFJKL:\n"); */
-/* 		wattroff(win, COLOR_PAIR(i)); */
-/* 	} */
-/* 	wrefresh(win); */
-/* 	box(win, 0, 0); */
-/* 	wrefresh(win); */
-	
-/* 	while(1){ */
-/* 		direction d = get_key(); */
-/* 		switch(d){ */
-/* 		case UP: */
-/* 			printw("UP\n"); */
-/* 			break; */
-/* 		case DOWN: */
-/* 			printw("DOWN\n"); */
-/* 			break; */
-/* 		case LEFT: */
-/* 			printw("LEFT\n"); */
-/* 			break; */
-/* 		case RIGHT: */
-/* 			printw("RIGHT\n"); */
-/* 			break; */
-/* 		default: */
-/* 			goto L; */
-/* 		} */
-/* 	} */
-	
-/* L:	y = getmaxy(stdscr); */
-/* 	x = getmaxx(stdscr); */
-/* 	printw("%d, %d", y, x); */
-/* 	refresh(); */
-/* 	getchar(); */
-
-	
-/* 	getchar(); */
+	getch();
 	endwin();
+	printf("Final Score = %ld\n", get_score());
 	return 0;
 }
-
-
-
-
-
-
-

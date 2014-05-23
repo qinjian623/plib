@@ -7,14 +7,46 @@ int cell_width = 6;
 long score = 1000;
 int board[K][K];
 
+boolean two_cells_can_merge(int row0, int col0,
+			    int row1, int col1){
+	if (row0 >= K || col0 >= K || row1 >= K || col1 >= K){
+		return false;
+	}else{
+		if (board[row0][col0] != 0 &&
+		    board[row0][col0] == board[row1][col1]){
+			return true;
+		}else{
+			return false;
+		}
+	}
+}
+
 long get_score(){
 	return score;
 }
 
+void next(boolean incremental, int* current){
+	if (incremental){
+		(*current)++;
+	}else{
+		(*current)--;
+	}
+}
+boolean boundry(boolean incremental, int current, int boundry){
+	if (incremental){
+		return current < boundry;
+	}else{
+		return current > boundry;
+	}
+}
 
-int row_iter(int row_start, int col_start, iter_fun f){
-	for (int i = row_start; i < K; ++i){
-		for(int j = col_start; j < K; ++j){
+int row_iter(int row_start, int row_end, int col_start, int col_end, iter_fun f){
+	boolean row_incremental = row_start < row_end? true:false;
+	boolean col_incremental = col_start < col_end? true:false;
+	for (int i = row_start; boundry(row_incremental, i, row_end);
+	     next(row_incremental, &i)){
+		for(int j = col_start; boundry(col_incremental, j, col_end);
+		    next(col_incremental, &j)){
 			boolean need_return = false;
 			int ret = (* f)(&i, &j, &need_return);
 			if (need_return == true){
@@ -25,9 +57,13 @@ int row_iter(int row_start, int col_start, iter_fun f){
 	return 0;
 }
 
-int col_iter(int row_start, int col_start, iter_fun f){
-	for (int i = col_start; i < K; ++i){
-		for(int j = row_start; j < K; ++j){
+int col_iter(int row_start, int row_end, int col_start, int col_end, iter_fun f){
+	int row_incremental = row_start < row_end? true:false;
+	int col_incremental = col_start < col_end? true:false;
+	for (int i = col_start; boundry(col_incremental, i, col_end);
+	     next(col_incremental, &i)){
+		for(int j = row_start; boundry(row_incremental, j, row_end);
+		    next(row_incremental, &j)){
 			boolean need_return = false;
 			int ret = (*f)(&j, &i, &need_return);
 			if (need_return == true){
@@ -81,13 +117,13 @@ int can_move_left(int* i, int* j, boolean* need_return){
 boolean can_move(direction d){
 	switch (d){
 	case UP:
-		return col_iter(0, 0, can_move_up);
+		return col_iter(0, K, 0, K, can_move_up);
 	case DOWN:
-		return col_iter(0, 0, can_move_down);
+		return col_iter(0, K, 0, K, can_move_down);
 	case RIGHT:
-		return row_iter(0, 0, can_move_right);
+		return row_iter(0, K, 0, K, can_move_right);
 	case LEFT:
-		return row_iter(0, 0, can_move_left);
+		return row_iter(0, K, 0, K, can_move_left);
 	default:
 		return false;
 	}
@@ -107,11 +143,11 @@ int merge_up(int* i, int* j, boolean* need_return){
 int merge_down(int* i, int* j, boolean* need_return){
 	int row = *i;
 	int col = *j;
-	if (two_cells_can_merge(row, col, row+1, col)){
-		board[row+1][col] += board[row][col];
+	if (two_cells_can_merge(row, col, row-1, col)){
+		board[row-1][col] += board[row][col];
 		board[row][col] = 0;
-		score += board[row+1][col];
-		(*i)++;
+		score += board[row-1][col];
+		(*i)--;
 	}
 }
 
@@ -129,48 +165,14 @@ int merge_left(int* i, int* j, boolean* need_return){
 int merge_right(int* i, int* j, boolean* need_return){
 	int row = *i;
 	int col = *j;
-	if (two_cells_can_merge(row, col, row, col+1)){
-		board[row][col+1] += board[row][col];
-		board[row][col] = 0;
-		score += board[row][col+1];
-		(*j)++;
+	if (two_cells_can_merge(row, col, row, col-1)){
+		board[row][col] += board[row][col-1];
+		board[row][col-1] = 0;
+		score += board[row][col];
+		(*j)--;
 	}
 }
 
-void merge_cells_col(direction d){
-	for(int i = 0; i < K; ++i){
-		for (int j = 0; j < K - 1; ++j){
-			if (board[j][i] == board[j + 1][i]){
-				switch(d){
-				case UP:
-					board[j][i] += board[j+1][i];
-					board[j+1][i] = 0;
-					j++;
-					break;
-				case DOWN:
-					board[j+1][i] += board[j][i];
-					board[j][i] = 0;
-					j++;
-					break;
-				}
-			}
-		}
-	}
-}
-
-boolean two_cells_can_merge(int row0, int col0,
-			    int row1, int col1){
-	if (row0 >= K || col0 >= K || row1 >= K || col1 >= K){
-		return false;
-	}else{
-		if (board[row0][col0] != 0 &&
-		    board[row0][col0] == board[row1][col1]){
-			return true;
-		}else{
-			return false;
-		}
-	}
-}
 
 int can_merge_up_or_down(int* i, int* j, boolean* need_return){
 	int row = *i;
@@ -193,81 +195,32 @@ boolean can_merge(direction d){
 	switch(d){
 	case UP:
 	case DOWN:
-		return col_iter(0, 0, can_merge_up_or_down);
+		return col_iter(0, K, 0, K, can_merge_up_or_down);
 	case LEFT:
 	case RIGHT:
-		return row_iter(0, 0, can_merge_right_or_left);
+		return row_iter(0, K, 0, K, can_merge_right_or_left);
 	}
 }
 
-int print_board_f(int* i, int* j, boolean* need_return){
-	int row = *i;
-	int col = *j;
-	if (col == 0){
-		for (int k = 0; k < K; ++k){
-			printf("|------");
-		}
-		printf("|\n");
-	}
-	printf("|%5d ", board[row][col]);
-	if (col == K-1){
-		printf("\n");
-	}
-	if (row == K-1 && col == K-1){
-		for (int k = 0; k < K; ++k){
-			printf("|------");
-		}
-		printf("|");
-	}
-	return 0;
-}
-
-void print_board(){
-	printf ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-	row_iter(0, 0, print_board_f);
-}
-
-
-void merge_cells_row(direction d){
-	for(int i = 0; i < K; ++i){
-		for (int j = 0; j < K - 1; ++j){
-			if (board[i][j] == board[i][j+1]){
-				switch(d){
-				case LEFT:
-					board[i][j] += board[i][j+1];
-					board[i][j+1] = 0;
-					j++;
-					break;
-				case RIGHT:
-					board[i][j+1] += board[i][j];
-					board[i][j] = 0;
-					j++;
-					break;
-				}
-			}
-		}
-	}
-}
 void merge_cells(direction d){
 	switch (d){
 	case UP:
-		col_iter(0, 0, merge_up);
+		col_iter(0, K, 0, K, merge_up);
 		break;
 	case DOWN:
-		col_iter(0, 0, merge_down);
-		//merge_cells_col(d);
+		col_iter(0, K, K-1, -1, merge_down);
 		break;
 	case RIGHT:
-		row_iter(0, 0, merge_right);
+		row_iter(0, K, K-1, -1, merge_right);
 		break;
 	case LEFT:
-		row_iter(0, 0, merge_left);
-		//merge_cells_row(d);
+		row_iter(0, K, 0, K, merge_left);
 		break;
 	default:
 		return;
 	}
 }
+
 /* TODO 这里的处理比较复杂 */
 void fill_empty_cells_up(direction d){
 	for (int i = 0; i < K; ++i){
@@ -363,7 +316,7 @@ boolean is_full_f(int* i, int* j, boolean* need_return){
 }
 
 boolean board_is_full(){
-	return row_iter(0, 0, is_full_f);
+	return row_iter(0, K, 0, K, is_full_f);
 }
 
 boolean move(direction d){
@@ -386,25 +339,18 @@ void put_new_number(){
 }
 
 boolean loop(direction d){
-	boolean cmo = can_move(d);
-	boolean cme = can_merge(d);
-	
-	/* if (!cmo){ */
-	/* 	printf("Can't move...\n"); */
-	/* } */
-	/* if (!cme){ */
-	/* 	printf("Can't merge...\n"); */
-	/* } */
-	if (cmo || cme){
+	if (can_move(d) || can_merge(d)){
 		move(d);
 		put_new_number();
 	}
 	
-	if (board_is_full()){
+	if (board_is_full()
+	    && !can_merge(UP)
+	    && !can_merge(DOWN)
+	    && !can_merge(LEFT)
+	    && !can_merge(RIGHT)
+		){
 		return false;
 	}
-	//print_board();
 	return true;
 }
-
-
