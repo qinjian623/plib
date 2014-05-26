@@ -21,6 +21,8 @@ function build_conv_psd(params)
 
    -- decoder is L1 solution:
    decoder = unsup.SpatialConvFistaL1(decodertable, kw, kh, iw, ih, params.coefficient)
+   --nn.Sequential()
+   --decoder:add(nn.Linear(params.nfiltersout * params.kernelwidth * params.kernelheight, params.width * params.height))
 
    -- PSD autoencoder
    module = unsup.PSD(encoder, decoder, params.beta)

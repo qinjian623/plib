@@ -84,12 +84,6 @@ function train_model(module, dataset, params)
             dweight = module.decoder.modules[1].weight
          end
 
-         -- reshape weights if linear matrix is used
-         if params.model:find('linear') then
-            dweight = dweight:transpose(1,2):unfold(2,params.inputsize,params.inputsize)
-            eweight = eweight:unfold(2,params.inputsize,params.inputsize)
-         end
-
          -- render filters
          dd = image.toDisplayTensor{input=dweight,
                                     padding=2,
@@ -109,8 +103,7 @@ function train_model(module, dataset, params)
          -- save stuff
          image.save(params.rundir .. '/filters_dec_' .. t .. '.jpg', dd)
          image.save(params.rundir .. '/filters_enc_' .. t .. '.jpg', de)
-         torch.save(params.rundir .. '/model_' .. t .. '.bin', module)
-
+         -- torch.save(params.rundir .. '/model_' .. t .. '.bin', module)
          -- reset counters
          err = 0; iter = 0
       end
