@@ -6,7 +6,7 @@ from StringIO import StringIO
 wiki_file = "/home/qin/八號坦克鼠式"
 #wiki_file = "/home/qin/QF6磅炮"
 #wiki_file = "/home/qin/中国地质大学"
-wiki_file = "/home/qin/清华大学"
+wiki_file = "/home/qin/wiki_test/清华大学"
 
 
 def str_concat(a, b):
@@ -32,7 +32,7 @@ class WikiCatlinksParser():
 
 class WikiTitleParser():
     def parse(self, tree):
-        //这里过于简单处理，存在title中本身就存在-
+        #这里过于简单处理，存在title中本身就存在-
         nodes = tree.xpath("//title")
         return "".join(["".join(node.itertext()).split('-')[0].strip()
                         for node in nodes])
