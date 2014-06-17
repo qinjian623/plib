@@ -8,9 +8,8 @@
 #import logging
 import json
 from lxml import etree
-from parsers import WikiInfoboxParser
-from parsers import WikiCatlinksParser
-from parsers import WikiTitleParser
+from parsers import CatsParser
+from parsers import TitleParser
 from parsers import WikiInfoboxClassParser
 
 # logger = logging.getLogger('mylogger')
@@ -34,7 +33,16 @@ def parse_html_text_to_tree(html_text):
     return etree.HTML(html_text)
 
 
+def parse_html_file(file):
+    text = ""
+    for line in open(file):
+        text += line
+    return etree.HTML(text)
+
+
 max_line = 100000
+
+
 def parse_file(file_path, before_hooks, parse_func, after_hooks):
     global max_line
     for line in open(file_path):
@@ -62,7 +70,7 @@ def output_json(json_object):
 
 def build_parse_func():
     parsers = {}
-    parsers['title'] = WikiTitleParser()
+    parsers['title'] = TitleParser()
     # parsers['cats'] = WikiCatlinksParser()
     # parsers['attrs'] = WikiInfoboxParser()
     parsers['class'] = WikiInfoboxClassParser()
