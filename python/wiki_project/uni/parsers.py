@@ -13,6 +13,7 @@
 '''
 import json
 import re
+from lxml import etree
 
 
 class Parser():
@@ -70,13 +71,17 @@ class AliasParser():
 class CoodinatesParser():
     """地理坐标解析"""
     coodinates_xpath = [
-        './/span[@class="latitude"]',
-        './/span[@class="longitude"]'
+        "//span[@class='latitude']",
+        "//span[@class='longitude']"
     ]
 
     def parse(self, node):
-        return ["".join(node.xpath(path_str)[0].itertext())
-                for path_str in self.coodinates_xpath]
+        latitude = node.xpath(self.coodinates_xpath[0])
+        longitude = node.xpath(self.coodinates_xpath[1])
+        if len(latitude) == 0:
+            return None
+        return ["".join(latitude[0].itertext()),
+                "".join(longitude[0].itertext())]
 
 
 class DiscriptionParser():
@@ -86,36 +91,82 @@ class DiscriptionParser():
 
     def parse(self, node):
         jo = {}
-        ps = node.xpath('.//div[@id="mw-content-text"]/p')
+        ps = node.xpath('.//div[@id="mw-content-text"]//p')
+        if len(ps) == 0:
+            return None
         coodinates = ps[0].xpath('.//span[@id="coordinates"]')
         if len(coodinates) > 0:
-            jo['coodinates'] = self.coodinates_parser.parse(coodinates[0])
             discription = ps[1]
         else:
             discription = ps[0]
+        coodinates = self.coodinates_parser.parse(node)
+        if coodinates is not None:
+            jo['coodinates'] = coodinates
         jo['alias'] = self.alias_parser.parse(discription)
         jo['text'] = "".join(discription.itertext())
         return jo
 
 
-class BiotaParser():
-    """
-    TODO
-    biota的特殊处理
-    小齒夕鼠屬的动物保护状况案例[特殊的规则来处理]
-    """
-    pass
+class IUCNFilter():
+    def filter(self, node):
+        c = node.get('class')
+        if "biota" in c:
+            a = node.xpath(".//a[@href[re:test(.,'Status_iucn')]]",
+                           namespaces={'re': "http://exslt.org/regular-expressions"})
+            if len(a) > 0:
+                a = a[0]
+                a.getparent().remove(a)
+        return node
+
+
+class LinksFilter():
+
+    def filter(self, node):
+        links = node.xpath(".//a[@class='external text']")
+        for a in links:
+            text = a.get('href')
+            a.text = text
+            for child in a.getchildren():
+                a.remove(child)
+        return node
+
+
+class BRFilter():
+    def filter(self, node):
+        brs = node.xpath(".//br")
+        for br in brs:
+            br.text = ','
+        return node
+
+
+class ListFilter():
+    def filter(self, node):
+        lis = node.xpath(".//li")
+        for li in lis:
+            li.addnext(etree.HTML('<br/>'))
+        return node
+
+
+class FlagIconFilter():
+    def filter(self, node):
+        for flag in node.xpath(".//span[@class='flagicon']"):
+            flag.getparent().remove(flag)
+        return node
 
 
 class NewUniIBParser():
-
     def has_jumped_image(self, th, tds):
+        only_one_col = False
+        if th is not None and len(tds) == 0:
+            only_one_col = True
+        if th is None and len(tds) == 1:
+            only_one_col = True
         # th就是图片
-        if th is not None and th.find('.//img') is not None:
+        if th is not None and th.find('.//img') is not None and only_one_col:
             return True
         # 没有th的情况下，td[0]是图片
         if th is None and len(tds) > 0 and\
-           tds[0].find('.//img') is not None:
+           tds[0].find('.//img') is not None and only_one_col:
             return True
         # 其他皆不考虑，但是后续需要剔除这个节点
         return False
@@ -137,22 +188,39 @@ class NewUniIBParser():
         th_has_background = th is not None and\
                             'style' in th.attrib and\
                             self.is_title_style(th.attrib['style'])
-        if th_has_background or parent_has_background:
+
+        th_children_has_background = self.children_has_backgound(th)
+
+        if th is not None and (th_has_background or parent_has_background or th_children_has_background):
             return "".join(th.itertext())
 
         td_has_background = th is None and len(tds) == 1 and\
                             'style' in tds[0].attrib and\
                             self.is_title_style(
                                 tds[0].attrib['style'])
-        if td_has_background or parent_has_background:
+
+        td_children_has_background = len(tds) == 1 and\
+                                     self.children_has_backgound(tds[0])
+
+        if td_has_background or parent_has_background or\
+           td_children_has_background:
             return "".join(tds[0].itertext())
         return None
+
+    def children_has_backgound(self, node):
+        if node is not None:
+            for child in node.getchildren():
+                if self.is_title_style(child.get('style')):
+                    return True
+        return False
 
     title_pa = re.compile('background')
 
     def is_title_style(self, string):
         # IDEA 目前使用的都是背景色的判断，后面要考虑是否会有更严密的判
         # 断
+        if string is None:
+            return False
         if NewUniIBParser.title_pa.search(string) is None:
             return False
         else:
@@ -164,14 +232,19 @@ class NewUniIBParser():
             for img in imgs:
                 img.getparent().remove(img)
 
+    # 这里的顺序不要变化
+    filters = [ListFilter(), LinksFilter(),
+               BRFilter(), IUCNFilter(), FlagIconFilter()]
+
     def parse(self, node):
+        for f in self.filters:
+            node = f.filter(node)
         json_object = []
         self.parse_wrapped(node, json_object)
         return json_object
 
     def parse_wrapped(self, node, json_object):
         #TODO 1. logger的加入，方便后续的修正
-        #TODO 翡翠2台 依然问题， <external links><br>的替换修改
         previous_row_is_title = False
         previous_row = ""
         for row in node.findall('tr'):
@@ -192,8 +265,9 @@ class NewUniIBParser():
             title = self.get_title(th, tds)
             if title is not None:
                 previous_row_is_title = True
-                previous_row = title
+                previous_row = title + '::LT'
                 continue
+
             # 普通处理，里面存在img的都要移除节点，外部链接。
             key = ""
             value = ""
@@ -208,7 +282,11 @@ class NewUniIBParser():
                 json_object.append((key, value))
                 previous_row_is_title = False
                 previous_row = None
-                continue
+                if (th is not None and tds_count > 0) or\
+                   (th is None and tds_count > 1):
+                    pass
+                else:
+                    continue
 
             if th is not None:
                 key = "".join(th.itertext())
@@ -226,13 +304,7 @@ class NewUniIBParser():
 
 
 class UniIBParser():
-    # 4. TODO 列表的识别与处理。
-    # 6. TODO 翡翠1台这个案例， 问题是折叠隐藏带来的错误。
-    # 5. FIX 外部链接 【考虑external text能否过滤出来】。
-    # 1. FIX 图片带来的问题, 跳过图片位置是th或者唯一的td的行。
-    # 7. FIX 居中、有背景色的，考虑为小标题。[这里利用attrib的属性来一次检
-    # 查],style中存在background还有text-align:center的情况 ，其中
-    # background是一个强烈信号
+
     def parse(self, node, json=[]):
         # 以此获取每一行的信息
         # TODO 目前的图片跳过方法有问题
@@ -275,31 +347,73 @@ class UniIBParser():
         return json
 
 
-def tmp(file_path):
+def tmp(file_path, start, offset):
+    import sys
     p2 = TitleParser()
     p3 = CatsParser()
     p4 = DiscriptionParser()
     p1 = NewUniIBParser()
+
+    i = offset
+    j = 0
     for line in open(file_path):
+        print >> sys.stderr, str(i)
+        j += 1
+        if j < start:
+            #print j
+            continue
+        i -= 1
         jo = {}
         tree = parse_html_text_to_tree(line)
+        if tree is None:
+            continue
         infobox_nodes = tree.xpath(
             "//table[@class[re:test(.,'infobox.*')]]",
             namespaces={'re': "http://exslt.org/regular-expressions"})
         if len(infobox_nodes) == 0:
             continue
 
+        jo['title'] = p2.parse(tree)
+        #print str(i) + ' ' + jo['title']
+        jo['cats'] = p3.parse(tree)
+        jo['discripter'] = p4.parse(tree)
         ibs = []
         for infobox in infobox_nodes:
             ibs.append(p1.parse(infobox))
         jo['attrs'] = ibs
-        jo['title'] = p2.parse(tree)
-        jo['cats'] = p3.parse(tree)
-        jo['discripter'] = p4.parse(tree)
         print json.dumps(jo, indent=4,
                          separators=(',', ': '),
                          ensure_ascii=False).encode("utf-8")
-        raw_input()
+        if i < 0:
+            break
+
+
+def tmp_one_file(file_path):
+    p2 = TitleParser()
+    p3 = CatsParser()
+    p4 = DiscriptionParser()
+    p1 = NewUniIBParser()
+    text = ""
+    for line in open(file_path):
+        text += line
+
+    jo = {}
+    tree = parse_html_text_to_tree(text)
+    infobox_nodes = tree.xpath(
+        "//table[@class[re:test(.,'infobox.*')]]",
+        namespaces={'re': "http://exslt.org/regular-expressions"})
+
+    jo['title'] = p2.parse(tree)
+    jo['cats'] = p3.parse(tree)
+    jo['discripter'] = p4.parse(tree)
+
+    ibs = []
+    for infobox in infobox_nodes:
+        ibs.append(p1.parse(infobox))
+    jo['attrs'] = ibs
+    print json.dumps(jo, indent=4,
+                     separators=(',', ': '),
+                     ensure_ascii=False).encode("utf-8")
 
 
 class WikiInfoboxClassParser():
@@ -415,3 +529,5 @@ def get_title(f):
             th = tr.find('th')
             tds = tr.findall('td')
             print p.get_title(th, tds)
+
+tmp('/home/qin/wiki_data/zhwiki-latest-all-titles-in-ns0-content6.3', 1, 300000)
