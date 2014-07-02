@@ -349,43 +349,41 @@ class UniIBParser():
 
 def tmp(file_path, start, offset):
     import sys
+    read = {}
     p2 = TitleParser()
     p3 = CatsParser()
     p4 = DiscriptionParser()
     p1 = NewUniIBParser()
 
-    i = offset
     j = 0
     for line in open(file_path):
-        print >> sys.stderr, str(i)
         j += 1
-        if j < start:
-            #print j
-            continue
-        i -= 1
+        print >> sys.stderr, str(j)
+
         jo = {}
         tree = parse_html_text_to_tree(line)
         if tree is None:
             continue
-        infobox_nodes = tree.xpath(
-            "//table[@class[re:test(.,'infobox.*')]]",
-            namespaces={'re': "http://exslt.org/regular-expressions"})
-        if len(infobox_nodes) == 0:
+        #continue
+        title = p2.parse(tree)
+        if title in read:
             continue
-
-        jo['title'] = p2.parse(tree)
+        jo['title'] = title
         #print str(i) + ' ' + jo['title']
         jo['cats'] = p3.parse(tree)
         jo['discripter'] = p4.parse(tree)
         ibs = []
-        for infobox in infobox_nodes:
-            ibs.append(p1.parse(infobox))
+
+        infobox_nodes = tree.xpath(
+            "//table[@class[re:test(.,'infobox.*')]]",
+            namespaces={'re': "http://exslt.org/regular-expressions"})
+        if len(infobox_nodes) != 0:
+            for infobox in infobox_nodes:
+                ibs.append(p1.parse(infobox))
         jo['attrs'] = ibs
         print json.dumps(jo, indent=4,
                          separators=(',', ': '),
                          ensure_ascii=False).encode("utf-8")
-        if i < 0:
-            break
 
 
 def tmp_one_file(file_path):
@@ -530,4 +528,5 @@ def get_title(f):
             tds = tr.findall('td')
             print p.get_title(th, tds)
 
-tmp('/home/qin/wiki_data/zhwiki-latest-all-titles-in-ns0-content6.3', 1, 300000)
+tmp('/home/qin/wiki_data/zhwiki-latest-all-titles-in-ns0-content6.3',
+    1, 300000)
