@@ -6,8 +6,11 @@ def parse_index(bs):
     return int(bs.encode('hex'), 16)
 
 
+# FIXED 这一方法存在bug， 如果出现0000会忽略
+# 使用encode方法解决
 def parse_hex(bs):
-    return "".join([format(ord(b), 'x') for b in bs])
+    return bs.encode('hex')
+    # return "".join([format(ord(b), 'x') for b in bs])
 
 constant_type_table = {
     7: 'Class',
@@ -223,9 +226,9 @@ def parse_classfile(class_file):
     obj['attributes_count'] = parse_index(attributes_count)
     obj['attributes'] = parse_attributes(cf, obj['attributes_count'])
     # print obj['attributes_count']
-    print json.dumps(obj, sort_keys=True,
-                     indent=4, separators=(',', ': '),
-                     ensure_ascii=False)# .encode("utf-8")
+    # print json.dumps(obj, sort_keys=True,
+    #                  indent=4, separators=(',', ': '),
+    #                  ensure_ascii=False)# .encode("utf-8")
     return obj
 
 
@@ -333,6 +336,11 @@ def parse_constant(cf):
 if __name__ == '__main__':
     import sys
     cls = parse_classfile(sys.argv[1])
+    print json.dumps(
+        cls, sort_keys=True,
+        indent=4, separators=(',', ': '),
+        ensure_ascii=False)
+    
     # while(True):
     #     no = raw_input()
     #     print json.dumps(
