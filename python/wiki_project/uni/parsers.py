@@ -95,7 +95,7 @@ class DiscriptionParser():
         if len(ps) == 0:
             return None
         coodinates = ps[0].xpath('.//span[@id="coordinates"]')
-        if len(coodinates) > 0:
+        if len(coodinates) > 0 and len(ps) > 1:
             discription = ps[1]
         else:
             discription = ps[0]
@@ -528,5 +528,7 @@ def get_title(f):
             tds = tr.findall('td')
             print p.get_title(th, tds)
 
-tmp('/home/qin/wiki_data/zhwiki-latest-all-titles-in-ns0-content6.3',
-    1, 300000)
+
+if __name__ == '__main__':
+    tmp('/home/qin/wiki_data/zhwiki-latest-all-titles-in-ns0-content6.3',
+        1, 300000)
