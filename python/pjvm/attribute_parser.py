@@ -26,7 +26,7 @@ def parse_attribute_code(info):
     start += code_attribute['code_length']*2
     code_attribute['code'] = code
     code_attribute['decode'] = decompile(code)
-    
+
     exception_table_length = info[start: start + 2*2]
     code_attribute['exception_table_length'] = int(exception_table_length, 16)
     start += 2*2

@@ -341,9 +341,9 @@ if __name__ == '__main__':
         indent=4, separators=(',', ': '),
         ensure_ascii=False)
     
-    # while(True):
-    #     no = raw_input()
-    #     print json.dumps(
-    #         cls['constant_pool'][int(no)], sort_keys=True,
-    #         indent=4, separators=(',', ': '),
-    #         ensure_ascii=False).encode("utf-8")
+    while(True):
+        no = raw_input()
+        print json.dumps(
+            cls['constant_pool'][int(no)], sort_keys=True,
+            indent=4, separators=(',', ': '),
+            ensure_ascii=False).encode("utf-8")
