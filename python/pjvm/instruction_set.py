@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# PC的计算依然需要确认
+
 
 def nop(code, pc):
     return pc
 
 
-def bipush(code, pc):
+def bipush(code, pc):  # DONE
     # 补码处理
     short = code[pc]
     pc += 1
@@ -19,7 +21,7 @@ def bipush(code, pc):
     return pc
 
 
-def sipush(code, pc):
+def sipush(code, pc):  # DONE
     short1 = code[pc]
     short2 = code[pc + 1]
     pc += 2
@@ -28,12 +30,13 @@ def sipush(code, pc):
     if i >= 32768:
         i -= 65536
     vm_stack.push(i)
+    return pc
 
 
 def return_void(code, pc):
     # TODO
     print "return..."
-    pass
+    return pc
 
 
 def putstatic(code, pc):
@@ -45,14 +48,683 @@ def putstatic(code, pc):
     index = (indexbyte1 << 8) | indexbyte2
     value = vm_stack.pop()
     print "Put static: ", index, '=', value
+    return pc
 
 
-def invokestatic(vm_stack, index):
+def invokestatic(code, pc):
+    # TODO
+    return pc
+
+
+def aconst_null(code, pc):  # DONE
+    vm_stack.push(None)
+    return pc
+
+
+def push_iconst(const):  # DONE
+    vm_stack.push(const)
+
+
+def iconst_m1(code, pc):  # DONE
+    push_iconst(-1)
+    return pc
+
+
+def iconst_0(code, pc):  # DONE
+    push_iconst(0)
+    return pc
+
+
+def iconst_1(code, pc):  # DONE
+    push_iconst(1)
+    return pc
+
+
+def iconst_2(code, pc):  # DONE
+    push_iconst(2)
+    return pc
+
+
+def iconst_3(code, pc):  # DONE
+    push_iconst(3)
+    return pc
+
+
+def iconst_4(code, pc):  # DONE
+    push_iconst(4)
+    return pc
+
+
+def iconst_5(code, pc):  # DONE
+    push_iconst(5)
+    return pc
+
+
+def lconst_0(code, pc):  # DONE
+    push_iconst(0)
+    return pc
+
+
+def lconst_1(code, pc):  # DONE
+    push_iconst(1)
+    return pc
+
+
+def fconst_0(code, pc):  # DONE
+    push_iconst(0.0)
+    return pc
+
+
+def fconst_1(code, pc):  # DONE
+    push_iconst(1.0)
+    return pc
+
+
+def fconst_2(code, pc):  # DONE
+    push_iconst(2.0)
+    return pc
+
+
+def dconst_0(code, pc):  # DONE
+    push_iconst(0.0)
+    return pc
+
+
+def dconst_1(code, pc):  # DONE
+    push_iconst(1.0)
+    return pc
+
+
+def ldc(code, pc):
+    # TODO
+    # Push item from run-time constant pool
     pass
 
 
-def aconst_null(code, pc):
+def ldc_w(code, pc):
+    # TODO
+    # Push item from run-time constant pool (wide index)
     pass
+
+def ldc2_w(code, pc):
+    # TODO
+    # Push long or double from run-time constant pool (wide index)
+    return pc
+
+def iload(code, pc):
+    # TODO
+    return pc
+
+def lload(code, pc):
+    # TODO
+    return pc
+def fload(code, pc):
+    # TODO
+    return pc
+def dload(code, pc):
+    # TODO
+    return pc
+def aload(code, pc):
+    # TODO
+    return pc
+def iload_0(code, pc):
+    # TODO
+    return pc
+def iload_1(code, pc):
+    # TODO
+    return pc
+def iload_2(code, pc):
+    # TODO
+    return pc
+def iload_3(code, pc):
+    # TODO
+    return pc
+def lload_0(code, pc):
+    # TODO
+    return pc
+def lload_1(code, pc):
+    # TODO
+    return pc
+def lload_2(code, pc):
+    # TODO
+    return pc
+def lload_3(code, pc):
+    # TODO
+    return pc
+def fload_0(code, pc):
+    # TODO
+    return pc
+def fload_1(code, pc):
+    # TODO
+    return pc
+def fload_2(code, pc):
+    # TODO
+    return pc
+def fload_3(code, pc):
+    # TODO
+    return pc
+def dload_0(code, pc):
+    # TODO
+    return pc
+def dload_1(code, pc):
+    # TODO
+    return pc
+def dload_2(code, pc):
+    # TODO
+    return pc
+def dload_3(code, pc):
+    # TODO
+    return pc
+def aload_0(code, pc):
+    # TODO
+    return pc
+def aload_1(code, pc):
+    # TODO
+    return pc
+def aload_2(code, pc):
+    # TODO
+    return pc
+def aload_3(code, pc):
+    # TODO
+    return pc
+def iaload(code, pc):
+    # TODO
+    return pc
+def laload(code, pc):
+    # TODO
+    return pc
+def faload(code, pc):
+    # TODO
+    return pc
+def daload(code, pc):
+    # TODO
+    return pc
+def aaload(code, pc):
+    # TODO
+    return pc
+def baload(code, pc):
+    # TODO
+    return pc
+def caload(code, pc):
+    # TODO
+    return pc
+def saload(code, pc):
+    # TODO
+    return pc
+def istore(code, pc):
+    # TODO
+    return pc
+def lstore(code, pc):
+    # TODO
+    return pc
+def fstore(code, pc):
+    # TODO
+    return pc
+def dstore(code, pc):
+    # TODO
+    return pc
+def astore(code, pc):
+    # TODO
+    return pc
+def istore_0(code, pc):
+    # TODO
+    return pc
+def istore_1(code, pc):
+    # TODO
+    return pc
+def istore_2(code, pc):
+    # TODO
+    return pc
+def istore_3(code, pc):
+    # TODO
+    return pc
+def lstore_0(code, pc):
+    # TODO
+    return pc
+def lstore_1(code, pc):
+    # TODO
+    return pc
+def lstore_2(code, pc):
+    # TODO
+    return pc
+def lstore_3(code, pc):
+    # TODO
+    return pc
+def fstore_0(code, pc):
+    # TODO
+    return pc
+def fstore_1(code, pc):
+    # TODO
+    return pc
+def fstore_2(code, pc):
+    # TODO
+    return pc
+def fstore_3(code, pc):
+    # TODO
+    return pc
+def dstore_0(code, pc):
+    # TODO
+    return pc
+def dstore_1(code, pc):
+    # TODO
+    return pc
+def dstore_2(code, pc):
+    # TODO
+    return pc
+def dstore_3(code, pc):
+    # TODO
+    return pc
+def astore_0(code, pc):
+    # TODO
+    return pc
+def astore_1(code, pc):
+    # TODO
+    return pc
+def astore_2(code, pc):
+    # TODO
+    return pc
+def astore_3(code, pc):
+    # TODO
+    return pc
+def iastore(code, pc):
+    # TODO
+    return pc
+def lastore(code, pc):
+    # TODO
+    return pc
+def fastore(code, pc):
+    # TODO
+    return pc
+def dastore(code, pc):
+    # TODO
+    return pc
+def aastore(code, pc):
+    # TODO
+    return pc
+def bastore(code, pc):
+    # TODO
+    return pc
+def castore(code, pc):
+    # TODO
+    return pc
+def sastore(code, pc):
+    # TODO
+    return pc
+def pop(code, pc):
+    # TODO
+    return pc
+def pop2(code, pc):
+    # TODO
+    return pc
+def dup(code, pc):
+    # TODO
+    return pc
+def dup_x1(code, pc):
+    # TODO
+    return pc
+def dup_x2(code, pc):
+    # TODO
+    return pc
+def dup2(code, pc):
+    # TODO
+    return pc
+def dup2_x1(code, pc):
+    # TODO
+    return pc
+def dup2_x2(code, pc):
+    # TODO
+    return pc
+def swap(code, pc):
+    # TODO
+    return pc
+def iadd(code, pc):
+    # TODO
+    return pc
+def ladd(code, pc):
+    # TODO
+    return pc
+def fadd(code, pc):
+    # TODO
+    return pc
+def dadd(code, pc):
+    # TODO
+    return pc
+def isub(code, pc):
+    # TODO
+    return pc
+def lsub(code, pc):
+    # TODO
+    return pc
+def fsub(code, pc):
+    # TODO
+    return pc
+def dsub(code, pc):
+    # TODO
+    return pc
+
+def mul_number():
+    v1 = vm_stack.pop()
+    v2 = vm_stack.pop()
+    vm_stack.push(v1 * v2)
+
+
+def imul(code, pc):  # DONE
+    mul_number()
+    return pc
+
+
+def lmul(code, pc):  # DONE
+    mul_number()
+    return pc
+
+
+def fmul(code, pc):  # DONE
+    mul_number()
+    return pc
+
+
+def dmul(code, pc):  # DONE
+    mul_number()
+    return pc
+
+
+def idiv(code, pc):
+    # TODO
+    return pc
+def ldiv(code, pc):
+    # TODO
+    return pc
+def fdiv(code, pc):
+    # TODO
+    return pc
+def ddiv(code, pc):
+    # TODO
+    return pc
+def reminder_number():
+    v1 = vm_stack.pop()
+    v2 = vm_stack.pop()
+    vm_stack.push(v1 % v2)
+
+def irem(code, pc):
+    # TODO
+    
+    return pc
+def lrem(code, pc):
+    # TODO
+    return pc
+def frem(code, pc):
+    # TODO
+    return pc
+def drem(code, pc):
+    # TODO
+    return pc
+def ineg(code, pc):
+    # TODO
+    return pc
+def lneg(code, pc):
+    # TODO
+    return pc
+def fneg(code, pc):
+    # TODO
+    return pc
+def dneg(code, pc):
+    # TODO
+    return pc
+def ishl(code, pc):
+    # TODO
+    return pc
+def lshl(code, pc):
+    # TODO
+    return pc
+def ishr(code, pc):
+    # TODO
+    return pc
+def lshr(code, pc):
+    # TODO
+    return pc
+def iushr(code, pc):
+    # TODO
+    return pc
+def lushr(code, pc):
+    # TODO
+    return pc
+def iand(code, pc):
+    # TODO
+    return pc
+def land(code, pc):
+    # TODO
+    return pc
+def ior(code, pc):
+    # TODO
+    return pc
+def lor(code, pc):
+    # TODO
+    return pc
+def ixor(code, pc):
+    # TODO
+    return pc
+def lxor(code, pc):
+    # TODO
+    return pc
+def iinc(code, pc):
+    # TODO
+    return pc
+def i2l(code, pc):
+    # TODO
+    return pc
+def i2f(code, pc):
+    # TODO
+    return pc
+def i2d(code, pc):
+    # TODO
+    return pc
+def l2f(code, pc):
+    # TODO
+    return pc
+def l2f(code, pc):
+    # TODO
+    return pc
+def l2d(code, pc):
+    # TODO
+    return pc
+def f2i(code, pc):
+    # TODO
+    return pc
+def f2l(code, pc):
+    # TODO
+    return pc
+def f2d(code, pc):
+    # TODO
+    return pc
+def d2i(code, pc):
+    # TODO
+    return pc
+def d2l(code, pc):
+    # TODO
+    return pc
+def d2f(code, pc):
+    # TODO
+    return pc
+def i2b(code, pc):
+    # TODO
+    return pc
+def i2c(code, pc):
+    # TODO
+    return pc
+def i2s(code, pc):
+    # TODO
+    return pc
+def lcmp(code, pc):
+    # TODO
+    return pc
+def fcmpl(code, pc):
+    # TODO
+    return pc
+def fcmpg(code, pc):
+    # TODO
+    return pc
+def dcmpl(code, pc):
+    # TODO
+    return pc
+def dcmpg(code, pc):
+    # TODO
+    return pc
+def ifeq(code, pc):
+    # TODO
+    return pc
+def ifne(code, pc):
+    # TODO
+    return pc
+def iflt(code, pc):
+    # TODO
+    return pc
+def ifge(code, pc):
+    # TODO
+    return pc
+def ifgt(code, pc):
+    # TODO
+    return pc
+def ifle(code, pc):
+    # TODO
+    return pc
+def if_icmpeq(code, pc):
+    # TODO
+    return pc
+def if_acmpne(code, pc):
+    # TODO
+    return pc
+def if_icmplt(code, pc):
+    # TODO
+    return pc
+def if_icmpge(code, pc):
+    # TODO
+    return pc
+def if_icmpgt(code, pc):
+    # TODO
+    return pc
+def if_icmple(code, pc):
+    # TODO
+    return pc
+def if_acmpeq(code, pc):
+    # TODO
+    return pc
+def if_acmpne(code, pc):
+    # TODO
+    return pc
+def goto(code, pc):
+    # TODO
+    return pc
+def jsr(code, pc):
+    # TODO
+    return pc
+def ret(code, pc):
+    # TODO
+    return pc
+def tableswitch(code, pc):
+    # TODO
+    return pc
+def lookupswitch(code, pc):
+    # TODO
+    return pc
+def ireturn(code, pc):
+    # TODO
+    return pc
+def lreturn(code, pc):
+    # TODO
+    return pc
+def freturn(code, pc):
+    # TODO
+    return pc
+def dreturn(code, pc):
+    # TODO
+    return pc
+def areturn(code, pc):
+    # TODO
+    return pc
+def return_void(code, pc):
+    # TODO
+    return pc
+def getstatic(code, pc):
+    # TODO
+    return pc
+def putstatic(code, pc):
+    # TODO
+    return pc
+def getfield(code, pc):
+    # TODO
+    return pc
+def putfield(code, pc):
+    # TODO
+    return pc
+def invokevirtual(code, pc):
+    # TODO
+    return pc
+def invokespecial(code, pc):
+    # TODO
+    return pc
+def invokestatic(code, pc):
+    # TODO
+    return pc
+def invokeinterface(code, pc):
+    # TODO
+    return pc
+def invokedynamic(code, pc):
+    # TODO
+    return pc
+def new(code, pc):
+    # TODO
+    return pc
+def newarray(code, pc):
+    # TODO
+    return pc
+def anewarray(code, pc):
+    # TODO
+    return pc
+def arraylength(code, pc):
+    # TODO
+    return pc
+def athrow(code, pc):
+    # TODO
+    return pc
+def checkcast(code, pc):
+    # TODO
+    return pc
+def instanceof(code, pc):
+    # TODO
+    return pc
+def monitorenter(code, pc):
+    # TODO
+    return pc
+def monitorexit(code, pc):
+    # TODO
+    return pc
+def wide(code, pc):
+    # TODO
+    return pc
+def multianewarray(code, pc):
+    # TODO
+    return pc
+def ifnull(code, pc):
+    # TODO
+    return pc
+def ifnonnull(code, pc):
+    # TODO
+    return pc
+def goto_w(code, pc):
+    # TODO
+    return pc
+def jsr_w(code, pc):
+    # TODO
+    return pc
+def breakpoint(code, pc):
+    # TODO
+    return pc
+def impdep1(code, pc):
+    # TODO
+    return pc
+def impdep2(code, pc):
+    # TODO
+    return pc
 
 instruction_call_table = {
     0x00: nop,
