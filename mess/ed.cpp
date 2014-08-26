@@ -33,7 +33,7 @@ int edit_distance(string a, string b)
 {
 	int length_a = a.length();
 	int length_b = b.length();
-	
+
 	int ** matrix = new int*[length_a+1];
 	for (int i = 0; i < length_a + 1; ++i){
 		matrix[i] = new int[length_b + 1];
@@ -58,12 +58,12 @@ int edit_distance(string a, string b)
 	}
 
 	int ret = matrix[length_a][length_b];
-	
+
 	for (int i = 0; i < length_a + 1; ++i){
 		delete[] matrix[i];
 	}
 	delete[] matrix;
-	
+
  	return ret;
 }
 
