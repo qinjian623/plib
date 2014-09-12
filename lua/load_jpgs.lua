@@ -24,7 +24,6 @@ function load_y_of_image_in_dir(fdir)
    local size = #filenames
    local data = torch.Tensor(size, 1, 360, 480)
 
-   
    local i = 1
    for i= 1, size do
       data[i] = get_y_channel(load_jpg(dir, filenames[i]))
@@ -37,7 +36,7 @@ function cut_pictures(pic, cut_width, cut_height, jump, std_thredhold)
    local pic_width = pic:size()[2]
    local pic_height = pic:size()[3]
    local patches = {}
-   
+
    for i=1, (pic_width - cut_width), jump do
       for j=1, (pic_height - cut_height), jump do
          local patch = pic:narrow(2, i, cut_width)
