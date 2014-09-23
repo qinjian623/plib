@@ -1,6 +1,7 @@
 pom.xml
 __pycache__
 *jar
+*.jpg
 /lib/
 /classes/
 /targets/

@@ -14,7 +14,7 @@ function get_y_channel(rgb_image)
    return image.rgb2y(rgb_image)
 end
 
-function load_y_of_image_in_dir(fdir)
+function load_y_of_image_in_dir(dir)
    local files = list_files(dir)
    local filenames = {}
    for fname in files do

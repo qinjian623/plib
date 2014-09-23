@@ -21,8 +21,7 @@ Mat CannyThreshold(Mat &src_gray)
 {
 	Mat detected_edges;
 	/// 使用 3x3内核降噪
-	blur( src_gray, detected_edges, Size(3,3) );
-
+	blur(src_gray, detected_edges, Size(3,3));
 	/// 运行Canny算子
 	Canny( detected_edges, detected_edges, 50, 50*3, 3);
 	return detected_edges;
@@ -34,9 +33,7 @@ int main(int argc, char** argv)
 	Mat image0;
 	Mat image1;
 	image0 = imread(argv[1], 1);
-
 	namedWindow("Linear Blend", 1);
-
 	uchar* d = image0.data;
 	int size = image0.rows*image0.cols;
 
@@ -80,6 +77,12 @@ int main(int argc, char** argv)
 	waitKey(0);
 	return 0;
 }
+
+
+
+
+
+
 
 
 
