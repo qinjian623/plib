@@ -1,8 +1,6 @@
 require 'nn'
 require 'unsup'
 
--- input dimensions
-
 
 local conntable = nn.tables.full(nfeats, nout)
 local decodertable = conntable:clone()

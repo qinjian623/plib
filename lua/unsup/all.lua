@@ -1,42 +1,7 @@
 require 'gfx.go'
 
-
-function next()
-   local answer = nil
-   while answer ~= '' and answer ~= 'y' and answer ~= 'Y' and neverstall ~= true do
-      io.write("continue ([y]/n/!)? ")
-      io.flush()
-      answer=io.read()
-      if answer == '!' then
-         neverstall = true
-      end
-      if answer == 'n' then
-         print('exiting...')
-         os.exit()
-      end
-   end
-   print ''
-end
-
-function shuffle(t)
-   local n = #t
-
-   while true do
-      if n < 2 then
-         break
-      end
-      -- n is now the last pertinent index
-      local k = math.random(n) -- 1 <= k <= n
-      -- Quick swap
-      t[n], t[k] = t[k], t[n]
-      n = n - 1
-   end
-
-   return t
-end
-
-
 mtt = require 'data'
+
 dir = '/home/qin/Documents/GiveQinJian/'
 dir  = '/srv/ftp/caltech-lanes/unsup/'
 dir = '/home/qin/Pictures/1/'
@@ -64,7 +29,6 @@ norm = nn.SpatialSubtractiveNormalization(1, normkernel)
 --gfx.image(data)
 --mtt.normalize(data)
 --gfx.image(data)
-
 
 dofile '1_data.lua'
 dofile 'model.lua'

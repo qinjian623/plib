@@ -1,4 +1,4 @@
-
+-- 训练过程，输入为模型和数据集
 function train_model(model, dataset)
    -- get all parameters
    x,dl_dx,ddl_ddx = model:getParameters()
@@ -28,9 +28,6 @@ function train_model(model, dataset)
          table.insert(targets, target)
       end
 
-      --------------------------------------------------------------------
-      -- define eval closure
-      --
       feval = function()
          -- reset gradient/f
          local f = 0
@@ -75,7 +72,6 @@ function train_model(model, dataset)
       -- compute statistics / report error
       --
       if iter >= save_interval then
-         print 'Into report code...'
          -- report
          print('==> iteration = ' .. t .. ', average loss = ' .. err/iter)
 
