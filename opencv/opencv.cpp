@@ -36,9 +36,7 @@ int main(int argc, char** argv)
 	namedWindow("Linear Blend", 1);
 	uchar* d = image0.data;
 	int size = image0.rows*image0.cols;
-
 	Mat M(image0.rows,image0.cols, CV_8UC1, Scalar(0,0,255));
-
 	// for (int j = 0; j < 3; j++) {
 	// 	if (image0.isContinuous()){
 	// 		for (int i = 0; i < size; i++) {
@@ -48,7 +46,6 @@ int main(int argc, char** argv)
 	// 	imshow( "Linear Blend", M);
 	// 	waitKey(0);
 	// }
-
 	Mat dst, src_gray;
 	dst.create( image0.size(), image0.type() );
 

@@ -1,32 +1,29 @@
 
-batch_size = 3
-save_interval = 1000
-maxiter = 4000
 function train_model(model, dataset)
-   print '==> training model'
    -- get all parameters
    x,dl_dx,ddl_ddx = model:getParameters()
 
    -- training errors
-   local err = 0
-   local iter = 0
+   --local err = 0
+   --local iter = 0
 
    for t = 1, maxiter , batch_size do
       --------------------------------------------------------------------
       -- progress
       -- 简单的进度调整
       iter = iter + batch_size
-      xlua.progress(iter, save_interval)
+      now_iter = now_iter + 1
+      -- xlua.progress(iter, save_interval)
 
       --------------------------------------------------------------------
       -- create mini-batch
-      local inputs = {}
-      local targets = {}
+      inputs = {}
+      targets = {}
       for i = t,t+batch_size-1 do
          -- load new sample
-         local sample = dataset[i]
-         local input = sample:clone()
-         local target = sample:clone()
+         sample = dataset[i]
+         input = sample:clone()
+         target = sample:clone()
          table.insert(inputs, input)
          table.insert(targets, target)
       end
@@ -34,7 +31,7 @@ function train_model(model, dataset)
       --------------------------------------------------------------------
       -- define eval closure
       --
-      local feval = function()
+      feval = function()
          -- reset gradient/f
          local f = 0
          dl_dx:zero()
@@ -45,6 +42,9 @@ function train_model(model, dataset)
             -- f
             -- ths loss 重构的loss
             f = f + model:updateOutput(inputs[i], targets[i])
+            --gfx.image(inputs)
+            --gfx.image(targets)
+            --next()
             -- gradients
             model:updateGradInput(inputs[i], targets[i])
             model:accGradParameters(inputs[i], targets[i])
@@ -74,10 +74,10 @@ function train_model(model, dataset)
       --------------------------------------------------------------------
       -- compute statistics / report error
       --
-      if math.fmod(t , save_interval) == 0 then
-
+      if iter >= save_interval then
+         print 'Into report code...'
          -- report
-         print('==> iteration = ' .. t .. ', average loss = ' .. err/1)
+         print('==> iteration = ' .. t .. ', average loss = ' .. err/iter)
 
          -- get weights
          eweight = model.encoder.modules[1].weight

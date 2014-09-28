@@ -6,15 +6,16 @@ require 'image'
 local MTT={}
 
 -- private
-local function load_jpg(fname)
+
+
+-- functions
+function MTT.load_jpg(fname)
    return image.loadJPG(fname)
 end
 
-local function get_y_channel(rgb_image)
+function MTT.get_y_channel(rgb_image)
    return image.rgb2y(rgb_image)
 end
-
--- functions
 
 -- functional programming functions
 function MTT.map(func, list)
@@ -50,6 +51,73 @@ function MTT.load_y_of_jpg_in_dir(dir)
    local images = MTT.load_jpg_in_dir(dir)
    local y_images=MTT.map(get_y_channel, images)
    return MTT.tensor_list_to_tensor(y_images)
+end
+
+function MTT.lcn(im)
+   local gs = 5
+   local gfh = image.gaussian{width=gs,height=1,normalize=true}
+   local gfv = image.gaussian{width=1,height=gs,normalize=true}
+   local gf = image.gaussian{width=gs,height=gs,normalize=true}
+   local mn = im:mean()
+   local std = im:std()
+   im = im[1]
+
+   if data_verbose then
+      print('im',mn,std,im:min(),im:max())
+   end
+   -- 平均值与方差
+   im:add(-mn)
+   im:div(std)
+   if data_verbose then
+      print('im',im:min(),im:max(),im:mean(), im:std())
+   end
+
+   local imsq = torch.Tensor()
+   local lmnsqh = torch.Tensor()
+   local lmnsq = torch.Tensor()
+   imsq:resizeAs(im):copy(im):cmul(im)
+   if data_verbose then
+      print('imsq',imsq:min(),imsq:max())
+   end
+
+   -- gfh横向的高斯
+   lmnh = torch.conv2(im,gfh)
+   -- gfh纵向的高斯
+   lmn = torch.conv2(lmnh,gfv)
+   if data_verbose then
+      print('lmn',lmn:min(),lmn:max())
+   end
+   --local lmn = torch.conv2(im,gf)
+   torch.conv2(lmnsqh,imsq,gfh)
+   torch.conv2(lmnsq,lmnsqh,gfv)
+   if data_verbose then
+      print('lmnsq',lmnsq:min(),lmnsq:max())
+   end
+   local lvar = torch.Tensor()
+   lvar:resizeAs(lmn):copy(lmn):cmul(lmn)
+   lvar:mul(-1)
+   lvar:add(lmnsq)
+   if data_verbose then
+      print('2',lvar:min(),lvar:max())
+   end
+   lvar:apply(function (x) if x<0 then return 0 else return x end end)
+   if data_verbose then
+      print('2',lvar:min(),lvar:max())
+   end
+   local lstd = lvar
+   lstd:sqrt()
+   lstd:apply(function (x) if x<1 then return 1 else return x end end)
+   if data_verbose then
+      print('lstd',lstd:min(),lstd:max())
+   end
+   local shift = (gs+1)/2
+   local nim = im:narrow(1,shift,im:size(1)-(gs-1)):narrow(2,shift,im:size(2)-(gs-1))
+   nim:add(-1,lmn)
+   nim:cdiv(lstd)
+   if data_verbose then
+      print('nim',nim:min(),nim:max())
+   end
+   return nim
 end
 
 function MTT.tensor_list_to_tensor(tensorlist)
