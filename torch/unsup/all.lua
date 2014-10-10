@@ -2,15 +2,15 @@ require 'gfx.go'
 
 mtt = require 'data'
 
-dir = '/home/qin/Documents/GiveQinJian/'
-dir  = '/srv/ftp/caltech-lanes/unsup/'
+--dir = '/home/qin/Documents/GiveQinJian/'
+--dir  = '/srv/ftp/caltech-lanes/unsup/'
 dir = '/home/qin/Pictures/1/'
 patch_size = 25
 patch_step = 25
 conv_input_size = 25
-kernsize = 9
+kernsize = 5
 nfeats = 1
-nout = 16
+nout = 32
 
 batch_size = 1
 save_interval = 3000
@@ -46,7 +46,7 @@ file_names = mtt.ls(dir)
 
 now_iter = 0
 for fname in file_names do
-   im = image.loadJPG(dir .. fname)
+   im = image.loadPNG(dir .. fname)
    lcn_im = mtt.lcn(mtt.get_y_channel(im))
    -- gfx.image(lcn_im)
    im_3d = torch.Tensor(1, lcn_im:size(1), lcn_im:size(2))

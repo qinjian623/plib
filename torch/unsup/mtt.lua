@@ -6,71 +6,12 @@ require 'image'
 local MTT={}
 
 -- private
-
-
--- functions
-
--- 从指定的文件路径中载入JPG文件，返回一个Tensor
-function MTT.load_jpg(fname)
-   return image.loadJPG(fname)
-end
-
--- 获得rgb图片的y通道
-function MTT.get_y_channel(rgb_image)
-   return image.rgb2y(rgb_image)
-end
-
--- 用于list的map函数，返回一个处理后的list
-function MTT.map(func, list)
-   local ret = {}
-   for k, v in pairs(list) do
-      table.insert(ret, func(v))
-   end
-   return ret
-end
-
--- 用于生成器的map函数，返回一个处理后的list
-function MTT.map_generator(func, gen)
-   local ret={}
-   for item in gen do
-      table.insert(ret, func(item))
-   end
-   return ret
-end
-
--- ls命令的包装，返回的是一个生成器
-function MTT.ls(d)
-   return io.popen(string.format("ls %s", d)):lines()
-end
-
--- 载入文件夹中所有的jpg图片
-function MTT.load_jpg_in_dir(dir)
-   function cat_dir(fname)
-      return dir..fname
-   end
-   dir = dir .. '/'
-   local images = MTT.map(load_jpg, MTT.map_generator(cat_dir, MTT.ls(dir)))
-   return images
-end
-
--- 文件夹中所有图片的y通道
-function MTT.load_y_of_jpg_in_dir(dir)
-   local images = MTT.load_jpg_in_dir(dir)
-   local y_images=MTT.map(get_y_channel, images)
-   return MTT.tensor_list_to_tensor(y_images)
-end
-
--- LCN的实现, 高斯核默认大小为5
--- TODO 等待实现对多图层的支持，目前只是生成第一图层的LCN，故API不会稳
--- 定
-function MTT.lcn(im, gs)
-   gs =  gs or 5
+local function lcn(im, gs)
    local gfh = image.gaussian{width=gs,height=1,normalize=true}
    local gfv = image.gaussian{width=1,height=gs,normalize=true}
    local gf = image.gaussian{width=gs,height=gs,normalize=true}
    local mn = im:mean()
    local std = im:std()
-   im = im[1]
 
    if data_verbose then
       print('im',mn,std,im:min(),im:max())
@@ -130,6 +71,83 @@ function MTT.lcn(im, gs)
    return nim
 end
 
+
+-- functions
+
+-- 从指定的文件路径中载入JPG文件，返回一个Tensor
+function MTT.load_jpg(fname)
+   return image.loadJPG(fname)
+end
+
+-- 获得rgb图片的y通道
+function MTT.get_y_channel(rgb_image)
+   return image.rgb2y(rgb_image)
+end
+
+-- 用于list的map函数，返回一个处理后的list
+function MTT.map(func, list)
+   local ret = {}
+   for k, v in pairs(list) do
+      table.insert(ret, func(v))
+   end
+   return ret
+end
+
+-- 用于生成器的map函数，返回一个处理后的list
+function MTT.map_generator(func, gen)
+   local ret={}
+   for item in gen do
+      table.insert(ret, func(item))
+   end
+   return ret
+end
+
+-- ls命令的包装，返回的是一个生成器
+function MTT.ls(d)
+   return io.popen(string.format("ls %s", d)):lines()
+end
+
+-- cat命令的包装，返回的是一个生成器
+function MTT.cat(d)
+   return io.popen(string.format("cat %s", d)):lines()
+end
+
+
+-- 载入文件夹中所有的jpg图片
+function MTT.load_jpg_in_dir(dir)
+   function cat_dir(fname)
+      return dir..fname
+   end
+   dir = dir .. '/'
+   local images = MTT.map(load_jpg, MTT.map_generator(cat_dir, MTT.ls(dir)))
+   return images
+end
+
+-- 文件夹中所有图片的y通道
+function MTT.load_y_of_jpg_in_dir(dir)
+   local images = MTT.load_jpg_in_dir(dir)
+   local y_images=MTT.map(get_y_channel, images)
+   return MTT.tensor_list_to_tensor(y_images)
+end
+
+
+-- LCN的实现, 高斯核默认大小为5
+-- TODO 等待实现对多图层的支持，目前只是生成第一图层的LCN，故API不会稳
+-- 定
+function MTT.lcn(im, gs)
+   gs = gs or 5
+   local channels_count = im:size()[1]
+   local new_width = im:size()[2]-gs+1
+   local new_height = im:size()[3]-gs+1
+   local ret = torch.Tensor(channels_count, new_width, new_height)
+   for i =1, channels_count do
+      ni = lcn(im[i], gs)
+      ret[i] = ni
+   end
+   return ret
+end
+
+
 -- 将Tensor列表转换为一个维度加1的Tensor
 function MTT.tensor_list_to_tensor(tensorlist)
    local size = #tensorlist
@@ -154,7 +172,7 @@ end
 -- 默认为0.2
 -- TODO 待增加多图层的操作
 function MTT.cut_one_channel_picture(pic, cut_width, cut_height, jump, std_thredhold)
-   std_thredhold = std_thredhold or 0.2
+   local std_thredhold = std_thredhold or nil
    local pic_width = pic:size()[2]
    local pic_height = pic:size()[3]
    local patches = {}
@@ -164,7 +182,7 @@ function MTT.cut_one_channel_picture(pic, cut_width, cut_height, jump, std_thred
          local patch = pic:narrow(2, i, cut_width)
          patch = patch:narrow(3, j, cut_height)
          local patch_std = patch: std()
-         if patch_std > std_thredhold then
+         if (not std_thredhold) or patch_std > std_thredhold then
             table.insert(patches, patch)
          end
       end
@@ -173,6 +191,19 @@ function MTT.cut_one_channel_picture(pic, cut_width, cut_height, jump, std_thred
    local ret = torch.Tensor(#patches, 1, cut_width, cut_height)
    for i =1, #patches do
       ret[i] = patches[i]
+   end
+   return ret
+end
+
+function MTT.merge_list(list0, list1)
+   local size0 = (#list0)[1]
+   local size1 = (#list1)[1]
+   local ret = torch.Tensor(size0 + size1, 1)
+   for i = 1, size0 do
+      ret[i] = list0[i]
+   end
+   for i = 1, size1 do
+      ret[i+size0] = list1[i]
    end
    return ret
 end

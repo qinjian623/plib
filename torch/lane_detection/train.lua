@@ -98,15 +98,16 @@ function train()
    -- do one epoch
    print('==> doing epoch on training data:')
    print("==> online epoch # " .. epoch .. ' [batchSize = ' .. opt.batchSize .. ']')
-   -- TODO hardcode... 44
-   for t = 1,44,1 do
+
+   s = all:size(1)
+   for t = 1,s,1 do
       -- disp progress
-      xlua.progress(t, 44)
+      xlua.progress(t, s)
 
       -- create mini batch
       local inputs = {}
       local targets = {}
-      for i = t,math.min(t+opt.batchSize-1, 44) do
+      for i = t,math.min(t+opt.batchSize-1, s) do
          -- load new sample
          local input = all[shuffle[i]]
          local target = alll[shuffle[i]]
@@ -134,11 +135,11 @@ function train()
                           -- estimate f
 			  -- criterion:forward(model:forward(all[1]), alll[1])
                           local output = model:forward(inputs[i])
-                          local err = criterion:forward(output, targets[i][1])
+                          local err = criterion:forward(output, targets[i])
                           f = f + err
 
                           -- estimate df/dW
-                          local df_do = criterion:backward(output, targets[i][1])
+                          local df_do = criterion:backward(output, targets[i])
                           model:backward(inputs[i], df_do)
 
                           -- update confusion
@@ -163,7 +164,7 @@ function train()
 
    -- time taken
    time = sys.clock() - time
-   time = time / 44
+   time = time / s
    print("\n==> time to learn 1 sample = " .. (time*1000) .. 'ms')
 
    -- print confusion matrix
@@ -177,7 +178,7 @@ function train()
    end
 
    -- next epoch
-   confusion:zero()
+   -- confusion:zero()
    epoch = epoch + 1
 
    --gfx.image(model:get(1).weight, {zoom = 20, legend ='L1'..epoch})

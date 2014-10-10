@@ -21,9 +21,9 @@ Mat CannyThreshold(Mat &src_gray)
 {
 	Mat detected_edges;
 	/// 使用 3x3内核降噪
-	blur(src_gray, detected_edges, Size(3,3));
+	blur(src_gray, detected_edges, Size(5,5));
 	/// 运行Canny算子
-	Canny( detected_edges, detected_edges, 50, 50*3, 3);
+	Canny( detected_edges, detected_edges, 20, 20*3, 3);
 	return detected_edges;
 }
 
@@ -47,12 +47,10 @@ int main(int argc, char** argv)
 	// 	waitKey(0);
 	// }
 	Mat dst, src_gray;
-	dst.create( image0.size(), image0.type() );
+	dst.create(image0.size(), image0.type() );
 
 	/// 原图像转换为灰度图像
 	cvtColor( image0, src_gray, CV_BGR2GRAY );
-	imshow( "Linear Blend", image0);
-	waitKey();
 
 	M = CannyThreshold(src_gray);
 	if (image0.isContinuous()){
@@ -68,6 +66,10 @@ int main(int argc, char** argv)
 		}
 	}
 	imshow( "Linear Blend", M);
+	waitKey();
+	imshow( "Linear Blend", image0);
+
+
 	if (argc == 3){
 		imwrite(argv[2], M);
 	}

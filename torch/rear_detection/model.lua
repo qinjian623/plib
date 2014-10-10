@@ -10,14 +10,15 @@ noutputs = 2
 
 -- input dimensions
 nfeats = 3
-width = 400
-height = 300
+width = scale_width - 4
+height = scale_height - 4
+
 ninputs = nfeats*width*height
 
 -- hidden units, filter sizes (for ConvNet only):
 nstates = {8,16,32}
 filtsize = 5
-poolsize = 2
+poolsize = 1
 normkernel = image.gaussian1D(7)
 
 ----------------------------------------------------------------------
@@ -39,21 +40,18 @@ model = nn.Sequential()
 -- stage 1 : filter bank -> squashing -> Max pooling -> normalization
 model:add(nn.SpatialConvolutionMap(nn.tables.random(nfeats, nstates[1], 3), filtsize, filtsize))
 -- model:add(nn.SpatialConvolutionMM(nfeats, nstates[1], filtsize, filtsize))
-model:add(nn.ReLU())
+model:add(nn.Tanh())
 model:add(nn.SpatialMaxPooling(poolsize,poolsize))
 model:add(nn.SpatialSubtractiveNormalization(nstates[1], normkernel))
-model:add(nn.SpatialMaxPooling(poolsize,poolsize))
-model:add(nn.SpatialMaxPooling(poolsize,poolsize))
-model:add(nn.SpatialMaxPooling(poolsize,poolsize))
 -- stage 2 : filter bank -> squashing -> Max pooling -> normalization
--- model:add(nn.SpatialConvolutionMap(nn.tables.random(nstates[1], nstates[2], 8), filtsize, filtsize))
--- model:add(nn.ReLU())
--- model:add(nn.SpatialMaxPooling(poolsize,poolsize))
--- model:add(nn.SpatialSubtractiveNormalization(nstates[2], normkernel))
+model:add(nn.SpatialConvolutionMap(nn.tables.random(nstates[1], nstates[2], 3), filtsize, filtsize))
+model:add(nn.Tanh())
+model:add(nn.SpatialMaxPooling(poolsize,poolsize))
+model:add(nn.SpatialSubtractiveNormalization(nstates[2], normkernel))
 
 -- stage 3 : standard 2-layer neural network
-model:add(nn.Reshape(nstates[1]*18*24))--*148*198))--72*97))
-model:add(nn.Linear(nstates[1]*18*24, nstates[3]))
+model:add(nn.Reshape(nstates[2]*63*88))--*148*198))--72*97))
+model:add(nn.Linear(nstates[2]*63*88, nstates[3]))
 model:add(nn.Tanh())
 model:add(nn.Linear(nstates[3], noutputs))
 

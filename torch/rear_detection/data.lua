@@ -8,7 +8,7 @@ function list_files(d)
 end
 
 function load_jpg(fdir, fname)
-   print(fdir ..fname)
+   --print(fdir ..fname)
    return image.loadJPG(fdir .. '/' .. fname)
 end
 
@@ -59,15 +59,15 @@ end
 
 
 function load_pos_and_neg(pos_dir, neg_dir)
-   pos = load_jpgs_in_dir(pos_dir, 3)
-   neg = load_jpgs_in_dir(neg_dir, 3)
-   posl = torch.Tensor((#pos)[1], 1)
+   local pos = load_jpgs_in_dir(pos_dir, 3)
+   local neg = load_jpgs_in_dir(neg_dir, 3)
+   local posl = torch.Tensor((#pos)[1], 1)
+   local negl = torch.Tensor((#neg)[1], 1)
    posl:fill(1)
-   negl = torch.Tensor((#neg)[1], 1)
    negl:fill(2)
 
-   all = merge_tensor(pos, neg)
-   alll = merge_list(posl, negl)
+   local all = merge_tensor(pos, neg)
+   local alll = merge_list(posl, negl)
    return all, alll
 end
 

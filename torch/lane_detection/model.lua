@@ -1,0 +1,10 @@
+require 'nn'
+l1_in = (p_size-4)*(p_size-4)
+model = nn.Sequential()
+model:add(nn.Reshape(l1_in))
+model:add(nn.Linear(l1_in, 200))
+model:add(nn.Tanh())
+model:add(nn.Linear(200, 32))
+model:add(nn.Tanh())
+model:add(nn.Linear(32, 2))
+print (model)
