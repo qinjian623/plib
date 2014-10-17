@@ -119,7 +119,8 @@ void car_rear_dection_ROI(Mat &image0)
 		//cout <<
 		//rect_min_x<<','<<rect_min_y<<','<<rect_max_x<<','<<rect_max_y
 		//<< endl;
-		if (abs(first.pt.x-second.pt.x)> 100){
+		float distance = abs(first.pt.x-second.pt.x);
+		if (distance> 100 || distance < 20){
 			continue;
 		}
 		Rect ROI(rect_min_x,
@@ -139,7 +140,7 @@ void car_rear_dection_ROI(Mat &image0)
 			break;
 		}
 		if (isRear){
-			rectangle(image0, ROI, Scalar(0, 255, 0));
+			rectangle(image0, ROI, Scalar(0, 0, 255),2);
 		}else{
 			//rectangle(image0, ROI, Scalar(0, 0, 255));
 		}
