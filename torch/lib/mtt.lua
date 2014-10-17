@@ -107,6 +107,11 @@ function MTT.ls(d)
    return io.popen(string.format("ls %s", d)):lines()
 end
 
+-- 执行制定命令
+function MTT.exec(cmd)
+   return io.popen(cmd):lines()
+end
+
 -- cat命令的包装，返回的是一个生成器
 function MTT.cat(d)
    return io.popen(string.format("cat %s", d)):lines()
@@ -168,6 +173,42 @@ function MTT.tensor_list_to_tensor(tensorlist)
    return data
 end
 
+local function cut_one_channel(channel, cut_width, cut_height, jump)
+   local pic_width = channel:size(1)
+   local pic_height = channel:size(2)
+   local patches = {}
+
+   for i=1, (pic_width - cut_width), jump do
+      for j=1, (pic_height - cut_height), jump do
+         local patch = channel:narrow(1, i, cut_width)
+         patch = patch:narrow(2, j, cut_height)
+         local patch_std = patch: std()
+         table.insert(patches, patch)
+      end
+   end
+
+   local ret = torch.Tensor(#patches, cut_width, cut_height)
+   for i =1, #patches do
+      ret[i] = patches[i]
+   end
+   return ret
+end
+
+function MTT.cut_one_picture(pic, cut_width, cut_height, jump, std_thredhold)
+   local channelsp = {}
+   for i=1, pic:size(1) do
+      channelsp[i] = cut_one_channel(pic[i], cut_width, cut_height, jump, std_thredhold)
+   end
+   local ret = torch.Tensor(channelsp[1]:size(1), pic:size(1), cut_width, cut_height)
+   for i=1, channelsp[1]:size(1) do
+      for j = 1, pic:size(1)do
+         ret[i][j] = channelsp[j][i]
+      end
+   end
+   return ret
+end
+
+
 -- 将图片以指定宽度和高度、步长切割，返回其中方差大于指定阈值的，阈值
 -- 默认为0.2
 -- TODO 待增加多图层的操作
@@ -206,6 +247,13 @@ function MTT.merge_list(list0, list1)
       ret[i+size0] = list1[i]
    end
    return ret
+end
+
+function MTT.list_append(list, append_list)
+   for i =1, #append_list do
+      table.insert(list, append_list[i])
+   end
+   return list
 end
 
 function MTT.merge_pic_tensor(list0, list1, height, width)

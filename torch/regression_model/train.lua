@@ -93,13 +93,14 @@ function train()
    local time = sys.clock()
 
    -- shuffle at each epoch
-   shuffle = torch.randperm((#all)[1])
+   shuffle = torch.randperm(#all)
 
    -- do one epoch
    print('==> doing epoch on training data:')
    print("==> online epoch # " .. epoch .. ' [batchSize = ' .. opt.batchSize .. ']')
 
-   s = all:size(1)
+   s = #all
+   re = nn.Reshape(89*159)
    for t = 1,s,1 do
       -- disp progress
       xlua.progress(t, s)
@@ -114,7 +115,7 @@ function train()
          if opt.type == 'double' then input = input:double()
          elseif opt.type == 'cuda' then input = input:cuda() end
          table.insert(inputs, input)
-         table.insert(targets, target)
+         table.insert(targets, re:forward(target))
       end
 
       -- create closure to evaluate f(X) and df/dX
@@ -133,17 +134,16 @@ function train()
                        -- evaluate function for complete mini batch
                        for i = 1,#inputs do
                           -- estimate f
-			  -- criterion:forward(model:forward(all[1]), alll[1])
                           local output = model:forward(inputs[i])
-                          local err = criterion:forward(output, targets[i][1])
+                          local err = criterion:forward(output, targets[i])
                           f = f + err
-
+                          print ('loss = '..err)
                           -- estimate df/dW
-                          local df_do = criterion:backward(output, targets[i][1])
+                          local df_do = criterion:backward(output, targets[i])
                           model:backward(inputs[i], df_do)
 
                           -- update confusion
-                          confusion:add(output, targets[i][1])
+                          -- confusion:add(output, targets[i][1])
                        end
 
                        -- normalize gradients and f(X)

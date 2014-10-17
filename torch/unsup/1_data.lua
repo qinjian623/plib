@@ -123,7 +123,7 @@ function getdatacam(inputsize, std)
       lvar:resizeAs(lmn):copy(lmn):cmul(lmn)
       lvar:mul(-1)
       lvar:add(lmnsq)
-      if data_verbose then      
+      if data_verbose then
          print('2',lvar:min(),lvar:max())
       end
 

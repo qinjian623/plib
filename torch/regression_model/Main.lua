@@ -25,7 +25,7 @@ print '----------------- DATA  ------------------'
 all, alll = load_train_data('/home/qin/car_rear/realroadImage/',
                             '/home/qin/car_rear/label_rectangle/',
                             scale, p_size, p_size, jump, thredhold)
--- print (#alll)
+print (alll[1]:size())
 print '----------------- TRAIN ------------------'
 for t = 1,75,1 do
 	train()

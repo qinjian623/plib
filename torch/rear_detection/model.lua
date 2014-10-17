@@ -18,7 +18,7 @@ ninputs = nfeats*width*height
 -- hidden units, filter sizes (for ConvNet only):
 nstates = {8,16,32}
 filtsize = 5
-poolsize = 1
+poolsize = 2
 normkernel = image.gaussian1D(7)
 
 ----------------------------------------------------------------------
