@@ -29,7 +29,7 @@ public:
 	}
 
 	String to_string(){
-		stringstream ss;
+		StringStream ss;
 		int height = right_bottom_point.y - left_top_point.y ;
 		int width = right_bottom_point.x - left_top_point.x;
 		ss << left_top_point.x
@@ -41,7 +41,6 @@ public:
 		   << height;
 		return ss.str();
 	}
-
 
 	PinStatus pin(int x, int y){
 		// Two points are both set.
@@ -62,7 +61,6 @@ public:
 		}
 	}
 	friend ostream& operator<<(ostream& os, const Label& dt);
-
 };
 
 // 不是很需要
@@ -88,26 +86,6 @@ int mouse_y;
 ofstream meta_file_stream;
 Label* current_label;
 vector<Label*> * labels;
-
-int ls (string dir, vector<string> &files)
-{
-	DIR *dp;
-	struct dirent *dirp;
-	if((dp  = opendir(dir.c_str())) == NULL) {
-		cout << "Error(" << errno << ") opening " << dir << endl;
-		return errno;
-	}
-
-	while ((dirp = readdir(dp)) != NULL) {
-		String name = string(dirp->d_name);
-		if (name == "." || name == ".."){
-			continue;
-		}
-		files.push_back(name);
-	}
-	closedir(dp);
-	return 0;
-}
 
 void clear_labels()
 {
@@ -216,6 +194,7 @@ void tag_img_file(String& dir, String& file_name)
 		case NoOp:
 			break;
 		}
+		refresh();
 	}
 	return;
 }
@@ -258,7 +237,7 @@ void label_mouse_callback(int event, int x, int y, int, void*)
 
 String labels_to_string(vector<Label*> &labels)
 {
-	stringstream ss;
+	StringStream ss;
 	for (size_t i = 0; i < labels.size(); i++) {
 		Label *l = labels[i];
 		ss << " ";
@@ -286,15 +265,19 @@ void init()
 	setMouseCallback("Label", label_mouse_callback);
 }
 
+
 int main(int argc, char *argv[])
 {
-	assert(argc == 3);
-	String dir = string(argv[1]);
-	String meta_file = string(argv[2]);
-
+	//assert(argc == 3);
+	String dir="pics/";
+	String meta_file="label.txt";
+	if (argc == 3){
+		dir = String(argv[1]) + path_separator;
+		meta_file = String(argv[2]);
+	}
 	meta_file_stream.open(meta_file.c_str(), ios::out | ios::app);
 	vector<String> file_names;
-	ls(argv[1], file_names);
+	ls(dir, file_names);
 
 	init();
 	for (size_t i = 0; i < file_names.size(); i++) {
