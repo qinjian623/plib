@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/softcascade.hpp>
 #include <utility>
 #include <cmath>
 
