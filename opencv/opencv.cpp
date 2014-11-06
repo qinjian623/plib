@@ -1,7 +1,7 @@
 #include "stdio.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
-#include <opencv2/softcascade.hpp>
+
 #include <utility>
 #include <cmath>
 
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
 		//cout << src.rows << ',' << src.cols<< endl;
 		if(src.empty())
 			break;
-		pyrDown(src, src, Size(src.cols/2, src.rows/2));
+		resize(src, src, Size(640, 360));
 		car_rear_dection_ROI(src);
 		imshow("output",src);
 		if (done){
