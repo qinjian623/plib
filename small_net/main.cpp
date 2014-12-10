@@ -2,6 +2,7 @@
 #include <vector>
 #include <assert.h>
 #include <sstream>
+#include <random>
 
 using namespace std;
 
@@ -9,6 +10,32 @@ class Matrix2D;
 class Net;
 
 enum ActiveFunction{tanh, sigmoid, LeRU};
+
+class Matrix2D
+{
+public:
+        Matrix2D(size_t*s);
+        void clone(Matrix2D& m);
+        void mul(Matrix2D& m);
+        // void mul(double f);
+        // void mul(int d);
+        
+        void zero();
+        void fill(double d);
+        void random();
+        string to_string();
+        
+        
+private:
+        void resize_data(size_t* s);
+        void copy_data(vector < vector<double> >& temp);
+        
+        // Fields
+        size_t size[2];
+        vector< vector<double> > data;
+        
+        
+};
 
 class Net{
 public:
@@ -20,34 +47,27 @@ private:
 
 
 void Net::forward(Matrix2D& input, Matrix2D& output){
-        input.mul(layers[0]);
+        assert(layers.size() > 0);
+        output.clone(input);
         for(size_t i = 0; i < layers.size(); ++i){
+                output.mul(layers[i]);
         }
 }
 
-class Matrix2D
-{
-public:
-        Matrix2D(size_t*s);
-        void mul(Matrix2D& m);
-        void mul(double f);
-        void mul(int d);
 
-        void zero();
-        void fill(double d);
-        void random();
-        string to_string();
+void Matrix2D::clone(Matrix2D& m){
+        size[0] = m.size[0];
+        size[1] = m.size[1];
+        data.resize(size[0]);
+        for(size_t i = 0; i < size[0]; ++i){
+                data[i] = m.data[i];
+        }
+}
 
-private:
-        void resize_data(size_t* s);
-        void copy_data(vector < vector<double> >& temp);
-
-        // Fields
-        size_t size[2];
-        vector< vector<double> > data;
-
-
-};
+void Matrix2D::random(){
+        std::srand(std::time(0));
+        
+}
 
 string Matrix2D::to_string(){
         stringstream ss;
