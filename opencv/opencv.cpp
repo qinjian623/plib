@@ -129,6 +129,7 @@ bool in_range(float value, float s, float e)
 }
 
 
+
 void find_pairs(vector< pair<KeyPoint, KeyPoint> > & pairs, vector<KeyPoint> & keypoints){
 	for (size_t i = 0; i < keypoints.size(); i++) {
 		for (size_t j = i; j < keypoints.size(); j++) {
@@ -221,10 +222,15 @@ void car_rear_dection_ROI(Mat &image0)
 	// hsv空间，以更好的过滤红色
 	blur(image0, blured, Size(5,5));
 	cvtColor(blured, hsv, CV_BGR2HSV);
-	// 获得过滤红色的mask
-	inRange(hsv, Scalar(165, 40, 0),Scalar(180, 255, 255), mask1);
-	inRange(hsv, Scalar(0, 40, 0),Scalar(5, 255, 255), mask0);
+	//cvtColor(blured, hsv, CV_BGR2GRAY);
+	inRange(gray, Scalar(221),Scalar(255), mask1);
+	inRange(gray, Scalar(220),Scalar(221), mask0);
 	cv::bitwise_or(mask0, mask1, mask);
+
+	// 获得过滤红色的mask
+	//inRange(hsv, Scalar(165, 40, 0),Scalar(180, 255, 255), mask1);
+	//inRange(hsv, Scalar(0, 40, 0),Scalar(5, 255, 255), mask0);
+	//cv::bitwise_or(mask0, mask1, mask);
 
 	vector<Vec2f> all_lines;
 	HoughLines(M, all_lines, 1, CV_PI/180, 75, 0, 0);
@@ -326,7 +332,7 @@ void car_rear_dection_ROI(Mat &image0)
 		Point pt1(0,i),pt2(d,i);
 		//line( image0, pt1, pt2, Scalar(0,255,0), 1, CV_AA);
 	}
-	//imshow("Mask", mask);
+	imshow("Mask", mask);
 	//imshow("Canny",M);
 	//drawKeypoints(image0, keypoints, image0);
 }

@@ -9,3 +9,6 @@ label: label.cpp
 
 label_debug: label.cpp
 	g++ -g label.cpp -lm -o label -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_features2d
+
+nn: nn_splitter.cpp
+	g++ -g nn_splitter.cpp -lm -o nn -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_features2d

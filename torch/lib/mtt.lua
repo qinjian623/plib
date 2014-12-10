@@ -124,14 +124,14 @@ function MTT.load_jpg_in_dir(dir)
       return dir..fname
    end
    dir = dir .. '/'
-   local images = MTT.map(load_jpg, MTT.map_generator(cat_dir, MTT.ls(dir)))
+   local images = MTT.map(MTT.load_jpg, MTT.map_generator(cat_dir, MTT.ls(dir)))
    return images
 end
 
 -- 文件夹中所有图片的y通道
 function MTT.load_y_of_jpg_in_dir(dir)
    local images = MTT.load_jpg_in_dir(dir)
-   local y_images=MTT.map(get_y_channel, images)
+   local y_images=MTT.map(image.rgb2y, images)
    return MTT.tensor_list_to_tensor(y_images)
 end
 
@@ -140,7 +140,7 @@ end
 -- TODO 等待实现对多图层的支持，目前只是生成第一图层的LCN，故API不会稳
 -- 定
 function MTT.lcn(im, gs)
-   gs = gs or 5
+   local gs = gs or 5
    local channels_count = im:size()[1]
    local new_width = im:size()[2]-gs+1
    local new_height = im:size()[3]-gs+1
