@@ -2,14 +2,39 @@
 #include <vector>
 #include <assert.h>
 #include <sstream>
-#include <random>
-
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <cstdio>
 using namespace std;
 
 class Matrix2D;
 class Net;
 
-enum ActiveFunction{tanh, sigmoid, LeRU};
+enum ActivationFunction{TANH, S, ReLU, NIL};
+
+
+void sn_relu(double& d){
+        if (d < 0){
+                d = 0;
+        }
+}
+
+void sn_nil(double& d){
+        return;
+}
+
+void sn_tanh(double& d){
+        d = std::tanh(d);
+}
+
+void sn_sigmoid(double& d){
+        d = 1/(1+exp(-d));
+}
+
+void sn_random(double& d){
+        d = (double)rand() / RAND_MAX * 2 - 1;
+}
 
 class Matrix2D
 {
@@ -24,8 +49,8 @@ public:
         void fill(double d);
         void random();
         string to_string();
-        
-        
+        void apply(void(*f)(double&));
+
 private:
         void resize_data(size_t* s);
         void copy_data(vector < vector<double> >& temp);
@@ -37,20 +62,81 @@ private:
         
 };
 
-class Net{
+void Matrix2D::apply(void (*f)(double&)){
+        for(size_t i = 0; i < size[0]; ++i){
+                for (size_t j = 0; j < size[1]; ++j) {
+                        f(data[i][j]);
+                }
+        }
+}
+
+
+class Layer
+{
 public:
-        Net(vector<int> layers_neuron_counts);
-        void forward(Matrix2D& input, Matrix2D& output);
+        Layer(size_t * size, ActivationFunction f);
+        void forward(Matrix2D& input);
 private:
-        vector<Matrix2D> layers;
+        void apply_activation_function(Matrix2D& output);
+        ActivationFunction af;
+        Matrix2D m;
 };
 
+Layer::Layer(size_t *size, ActivationFunction f):m(Matrix2D(size)){
+        af = f;
+        m.random();
+        cout << m.to_string() << endl;
+}
+
+void Layer::apply_activation_function(Matrix2D &output){
+        switch(af){
+        case TANH:
+                output.apply(sn_tanh);
+                break;
+        case S:
+                output.apply(sn_sigmoid);
+                break;
+        case ReLU:
+                output.apply(sn_relu);
+                break;
+        case NIL:
+        default:
+                break;
+        }
+}
+
+void Layer::forward(Matrix2D &input){
+        input.mul(m);
+        apply_activation_function(input);
+}
+
+class Net{
+public:
+        Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions);
+        void forward(Matrix2D& input, Matrix2D& output);
+private:
+        vector<Layer> layers;
+        //vector<Matrix2D> layers;
+};
+
+Net::Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions){
+        assert(layers_neuron_counts.size() > 1);
+        assert(activation_functions.size() == layers_neuron_counts.size() - 1);
+        layers.clear();
+        size_t s[2];
+        for(size_t i = 0; i < layers_neuron_counts.size() - 1; ++i){
+                s[0] = layers_neuron_counts[i];
+                s[1] = layers_neuron_counts[i+1];
+                layers.push_back(Layer(s, activation_functions[i]));
+        }
+}
 
 void Net::forward(Matrix2D& input, Matrix2D& output){
         assert(layers.size() > 0);
         output.clone(input);
         for(size_t i = 0; i < layers.size(); ++i){
-                output.mul(layers[i]);
+                layers[i].forward(output);
+                //cout << output.to_string() << endl;
         }
 }
 
@@ -65,8 +151,8 @@ void Matrix2D::clone(Matrix2D& m){
 }
 
 void Matrix2D::random(){
-        std::srand(std::time(0));
-        
+        srand (time(NULL));
+        apply(sn_random);
 }
 
 string Matrix2D::to_string(){
@@ -74,7 +160,7 @@ string Matrix2D::to_string(){
         ss << "Matrix: size = " << size[0] << "," << size[1] << endl;
         for(size_t i = 0; i < size[0]; ++i){
                 for(size_t j = 0; j < size[1]; ++j){
-                        ss << data[i][j] << ",";
+                        ss << data[i][j] << ", ";
                 }
                 ss << endl;
         }
@@ -154,15 +240,25 @@ void test_function( vector< vector <int> > &vv){
 
 int main()
 {
-        size_t size[2] = {2, 2};
-        Matrix2D m(size);
-        m.fill(1.33);
+        int ta[3] = {2, 4, 1};
+        vector<int> arch(&ta[0], &ta[0]+3);
+        ActivationFunction taf[9] = {ReLU, NIL, ReLU, ReLU, ReLU, ReLU, ReLU, ReLU, TANH};
+        vector<ActivationFunction> afs(&taf[0], &taf[0]+2);
+        Net net(arch, afs);
 
-        size[1] = 10;
-        Matrix2D m1(size);
-        m1.fill(3.21);
-        m.mul(m1);
-        cout << m.to_string() << endl;
+        size_t in_size[2] = {1, ta[0]};
+        size_t out_size[2] = {1, 1};
+        Matrix2D in(&in_size[0]);
+        in.random();
+        in.fill(1);
+        Matrix2D out(&out_size[0]);
+
+        cout << in.to_string() << endl;
+        clock_t t = clock();
+        net.forward(in, out);
+        t = clock() - t;
+        printf ("It took me %ld clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+        cout << out.to_string() << endl;
         return 0;
 }
 
