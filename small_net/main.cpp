@@ -85,7 +85,7 @@ private:
 Layer::Layer(size_t *size, ActivationFunction f):m(Matrix2D(size)){
         af = f;
         m.random();
-        cout << m.to_string() << endl;
+        //cout << m.to_string() << endl;
 }
 
 void Layer::apply_activation_function(Matrix2D &output){
@@ -189,6 +189,8 @@ Matrix2D::Matrix2D(size_t *s){
 }
 
 void Matrix2D::resize_data(size_t* s){
+        // FIXME This function can only work when the first dimension does NOT change.
+        // If resize to a larger size, new created data[i] will need to be initialized.
         data.resize(s[0]);
         for(size_t i = 0; i < size[0]; ++i){
                 data[i].resize(s[1]);
@@ -240,9 +242,9 @@ void test_function( vector< vector <int> > &vv){
 
 int main()
 {
-        int ta[3] = {2, 4, 1};
+        int ta[3] = {400, 400*2, 1};
         vector<int> arch(&ta[0], &ta[0]+3);
-        ActivationFunction taf[9] = {ReLU, NIL, ReLU, ReLU, ReLU, ReLU, ReLU, ReLU, TANH};
+        ActivationFunction taf[9] = {TANH, TANH, ReLU, ReLU, ReLU, ReLU, ReLU, ReLU, TANH};
         vector<ActivationFunction> afs(&taf[0], &taf[0]+2);
         Net net(arch, afs);
 
@@ -253,7 +255,7 @@ int main()
         in.fill(1);
         Matrix2D out(&out_size[0]);
 
-        cout << in.to_string() << endl;
+        //cout << in.to_string() << endl;
         clock_t t = clock();
         net.forward(in, out);
         t = clock() - t;
