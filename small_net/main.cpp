@@ -49,6 +49,7 @@ public:
         Matrix2D(size_t*s);
         void clone(Matrix2D& m);
         void mul(Matrix2D& m);
+        void mul(double& d);
         void sub(Matrix2D& m);
         void add(Matrix2D& m);
         void mul_transpose(Matrix2D& m);
@@ -76,6 +77,15 @@ private:
         vector< vector<double> > data;
 
 };
+
+
+void Matrix2D::mul(double &d){
+        for(size_t i = 0; i < data.size(); ++i){
+                for(size_t j = 0; j < data[i].size(); ++j){
+                        data[i][j] *= d;
+                }
+        }
+}
 
 void Matrix2D::resize(size_t rows, size_t cols){
         resize_data(rows, cols);
@@ -131,7 +141,11 @@ public:
         void training_forward(Matrix2D& input);
 
         void reset();
+
+        string to_string();
 private:
+
+        void add_bias(Matrix2D& input);
         void apply_activation_function(Matrix2D& output);
         ActivationFunction af;
         Matrix2D m;
@@ -141,6 +155,13 @@ private:
         // TODO 未来可以考虑使用vector节约内存使用
         //vector<double> *D;
 };
+
+string Layer::to_string(){
+        stringstream ss;
+        ss << m.to_string();
+        ss << af;
+        return ss.str();
+}
 void Layer::reset(){
         O->resize(m.rows(), 1);
         D->resize(m.cols(), m.cols());
@@ -148,24 +169,34 @@ void Layer::reset(){
 
 void Layer::prepare_training(){
         O = new Matrix2D(m.rows(), 1);
+        // bias
         D = new Matrix2D(m.cols(), m.cols());
 }
 
+/**
+ * TODO bias bug
+ * @brief Layer::training_forward
+ * @param input
+ */
 void Layer::training_forward(Matrix2D &input){
         assert(D!=NULL);
         assert(D->rows() == D->cols() && D->cols() == m.cols());
+
+        add_bias(input);
         for(size_t i = 0; i < input.cols(); ++i){
                 O->set(i, 0, input.get(0, i));
         }
+        // same as forward(input);
+        input.mul(m);
+        apply_activation_function(input);
 
-        forward(input);
 
         assert(input.rows() == 1);
         D->zero();
-        for(size_t i = 0; i < input.cols(); ++i){
+        for(size_t i = 0; i < input.cols() ; ++i){
                 double o = input.get(0, i);
                 // double o = input.data[0][i];
-                D->set(i, i, o*(1-o));
+                D->set(i, i, 1-o*o); // Sigmoid ::o*(1-o)
         }
 }
 
@@ -193,7 +224,15 @@ void Layer::apply_activation_function(Matrix2D &output){
         }
 }
 
+void Layer::add_bias(Matrix2D& input){
+        // bias
+        input.resize(input.rows(), input.cols()+1);
+        for(size_t i = 0; i < input.rows(); ++i){
+                input.set(i, input.cols()-1 ,1);
+        }
+}
 void Layer::forward(Matrix2D &input){
+        add_bias(input);
         input.mul(m);
         apply_activation_function(input);
 }
@@ -203,28 +242,36 @@ public:
         Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions);
         void forward(Matrix2D& input, Matrix2D& output);
         void train(Matrix2D& input, Matrix2D& label);
-        void prepare_training();
+        void prepare_training(const double& step);
 
+        void dump();
 
 private:
         void reset();
         void backward(Matrix2D& error);
         void training_forward(Matrix2D& input, Matrix2D& output);
         void update();
+        double step;
         vector<Layer> layers;
         //vector<Matrix2D> layers;
 };
 
+void Net::dump(){
+        for(vector<Layer>::iterator it = layers.begin(); it!= layers.end(); ++it){
+                cout << (*it).to_string()<< endl;
+        }
+}
 void Net::reset(){
         for(vector<Layer>::iterator it = layers.begin(); it!= layers.end(); ++it){
-                (*it).reset();
+                        (*it).reset();
         }
 }
 
-void Net::prepare_training(){
+void Net::prepare_training(const double& s){
         for(vector<Layer>::iterator it = layers.begin(); it != layers.end(); ++it){
                 (*it).prepare_training();
         }
+        this->step = s;
 }
 
 void Net::backward(Matrix2D &error){
@@ -256,21 +303,34 @@ void Net::update(){
         for(size_t i = 0; i < layers.size(); ++i){
                 assert(layers[i].m.rows() == layers[i].O->rows() &&
                        layers[i].m.cols() == layers[i].O->cols());
+                layers[i].O->mul(step);
+                //cout << "Weights update..." << endl;
+                //cout << layers[i].O->to_string() << endl;
                 layers[i].m.sub(*layers[i].O);
         }
 }
 void Net::train(Matrix2D &input, Matrix2D &label){
-        reset();
+
         // Feed forward
         Matrix2D output(label.rows(), label.cols());
         training_forward(input, output);
-
+        cout << "Output ============" << endl;
+        cout << output.to_string() << endl;
         // Derivatives of Loss
         output.sub(label);
+
+        double sum = 0.0;
+        for(size_t i = 0; i < output.rows(); ++i){
+               for(size_t j = 0; j < output.cols(); ++j){
+                       sum += output.get(i, j)*output.get(i, j);
+               }
+        }
+        cout << "Loss ========>"<< sum << endl;
         // Backward
         backward(output);
         // Update weights
         update();
+        reset();
 }
 
 Net::Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions){
@@ -279,7 +339,8 @@ Net::Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activati
         layers.clear();
         size_t s[2];
         for(size_t i = 0; i < layers_neuron_counts.size() - 1; ++i){
-                s[0] = layers_neuron_counts[i];
+                // features + bias
+                s[0] = layers_neuron_counts[i] + 1;
                 s[1] = layers_neuron_counts[i+1];
                 layers.push_back(Layer(s, activation_functions[i]));
         }
@@ -312,12 +373,14 @@ void Matrix2D::random(){
 string Matrix2D::to_string(){
         stringstream ss;
         ss << "Matrix: size = " << size[0] << "," << size[1] << endl;
+        ss << "[";
         for(size_t i = 0; i < size[0]; ++i){
                 for(size_t j = 0; j < size[1]; ++j){
                         ss << data[i][j] << ", ";
                 }
-                ss << endl;
+                ss << ";"<< endl;
         }
+        ss << "]";
         return ss.str();
 }
 
@@ -372,6 +435,7 @@ void Matrix2D::set(size_t row, size_t col, double val){
 
 
 void Matrix2D::mul_transpose(Matrix2D &m){
+        //cout << size[1] << ",," << m.size[1] << endl;
         assert(size[1] == m.size[1]);
         if (size[1] != m.size[1]){
                 cout << "Error" << endl;
@@ -446,10 +510,10 @@ void build_xor_training_set(vector<Matrix2D*>& xs, vector<Matrix2D*>& ys){
         ys.resize(4);
 
         x = new Matrix2D(1, 2);
-        x->set(0, 0, 0);
-        x->set(0, 1, 0);
+        x->set(0, 0, 0.0001);
+        x->set(0, 1, 0.0001);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, 0);
+        y->set(0, 0, -1);
         xs[0] = x;
         ys[0] = y;
 
@@ -458,23 +522,23 @@ void build_xor_training_set(vector<Matrix2D*>& xs, vector<Matrix2D*>& ys){
         x->set(0, 0, 1);
         x->set(0, 1, 1);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, 0);
+        y->set(0, 0, 1);
         xs[1] = x;
         ys[1] = y;
 
         x = new Matrix2D(1, 2);
-        x->set(0, 0, 0);
+        x->set(0, 0, 0.0001);
         x->set(0, 1, 1);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, 1);
+        y->set(0, 0, -1);
         xs[2] = x;
         ys[2] = y;
 
         x = new Matrix2D(1, 2);
         x->set(0, 0, 1);
-        x->set(0, 1, 0);
+        x->set(0, 1, 0.0001);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, 1);
+        y->set(0, 0, -1);
         xs[3] = x;
         ys[3] = y;
 }
@@ -483,7 +547,7 @@ int main()
 {
         int ta[4] = {2, 4, 1, 1};
         vector<int> arch(&ta[0], &ta[0]+3);
-        ActivationFunction taf[9] = {S, S, S, TANH, ReLU, ReLU, ReLU, ReLU, TANH};
+        ActivationFunction taf[9] = {TANH, TANH, TANH, TANH, ReLU, ReLU, ReLU, ReLU, TANH};
         vector<ActivationFunction> afs(&taf[0], &taf[0]+2);
         Net net(arch, afs);
 
@@ -491,27 +555,43 @@ int main()
         size_t out_size[2] = {1, 1};
         Matrix2D in(&in_size[0]);
         in.random();
-        in.fill(1);
+        //in.fill(1);
         Matrix2D out(&out_size[0]);
 
-        net.prepare_training();
+        net.prepare_training(0.000001);
 
         vector<Matrix2D*> xs;
         vector<Matrix2D*> ys;
         build_xor_training_set(xs, ys);
 
         std::srand(time(NULL));
-        for (int var = 0; var < 1000; ++var) {
+
+        net.dump();
+        net.forward(in, out);
+        cout << in.to_string() << endl;
+        cout << out.to_string() << endl;
+
+        for (int var = 0; var < 10000; ++var) {
                 int i= std::rand()%4;
+                //cout << "Input & Label ====================" << endl;
+                //
                 //net.forward(*xs[i], out);
                 //cout << out.to_string() << endl;
                 net.train(*xs[i], *ys[i]);
         }
-
+        //cout << "Network dumping ...." << endl;
+        //net.dump();
+        //exit(0);
         //cout << in.to_string() << endl;
         clock_t t = clock();
         for(int i = 0; i < 4; ++i){
                 net.forward(*xs[i], out);
+                cout << "--------------------------------"<<endl;
+                cout << "X = ";
+                cout << xs[i]->to_string() << endl;
+                cout << "Y = ";
+                cout << ys[i]->to_string() << endl;
+                cout << "H(x) = ";
                 cout << out.to_string() << endl;
         }
         //net.forward(in, out);
