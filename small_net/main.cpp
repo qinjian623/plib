@@ -3,6 +3,8 @@
   TODO bias
   */
 
+#include <algorithm>
+#include <fstream>
 
 #include <iostream>
 #include <vector>
@@ -181,11 +183,10 @@ void Layer::prepare_training(){
 void Layer::training_forward(Matrix2D &input){
         assert(D!=NULL);
         assert(D->rows() == D->cols() && D->cols() == m.cols());
-
-        add_bias(input);
         for(size_t i = 0; i < input.cols(); ++i){
                 O->set(i, 0, input.get(0, i));
         }
+        //add_bias(input);
         // same as forward(input);
         input.mul(m);
         apply_activation_function(input);
@@ -232,7 +233,7 @@ void Layer::add_bias(Matrix2D& input){
         }
 }
 void Layer::forward(Matrix2D &input){
-        add_bias(input);
+        //add_bias(input);
         input.mul(m);
         apply_activation_function(input);
 }
@@ -314,8 +315,8 @@ void Net::train(Matrix2D &input, Matrix2D &label){
         // Feed forward
         Matrix2D output(label.rows(), label.cols());
         training_forward(input, output);
-        cout << "Output ============" << endl;
-        cout << output.to_string() << endl;
+        //cout << "Output ============" << endl;
+        //cout << output.to_string() << endl;
         // Derivatives of Loss
         output.sub(label);
 
@@ -325,7 +326,11 @@ void Net::train(Matrix2D &input, Matrix2D &label){
                        sum += output.get(i, j)*output.get(i, j);
                }
         }
-        cout << "Loss ========>"<< sum << endl;
+        if (sum < 0.001){
+                //cout << "Loss ========>"<< sum << endl;
+                return;
+        }
+
         // Backward
         backward(output);
         // Update weights
@@ -340,7 +345,8 @@ Net::Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activati
         size_t s[2];
         for(size_t i = 0; i < layers_neuron_counts.size() - 1; ++i){
                 // features + bias
-                s[0] = layers_neuron_counts[i] + 1;
+                // TODO we drop the weight for bias.
+                s[0] = layers_neuron_counts[i];
                 s[1] = layers_neuron_counts[i+1];
                 layers.push_back(Layer(s, activation_functions[i]));
         }
@@ -510,8 +516,8 @@ void build_xor_training_set(vector<Matrix2D*>& xs, vector<Matrix2D*>& ys){
         ys.resize(4);
 
         x = new Matrix2D(1, 2);
-        x->set(0, 0, 0.0001);
-        x->set(0, 1, 0.0001);
+        x->set(0, 0, 0.1);
+        x->set(0, 1, 0.1);
         y = new Matrix2D(1, 1);
         y->set(0, 0, -1);
         xs[0] = x;
@@ -522,45 +528,181 @@ void build_xor_training_set(vector<Matrix2D*>& xs, vector<Matrix2D*>& ys){
         x->set(0, 0, 1);
         x->set(0, 1, 1);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, 1);
+        y->set(0, 0, -1);
         xs[1] = x;
         ys[1] = y;
 
         x = new Matrix2D(1, 2);
-        x->set(0, 0, 0.0001);
+        x->set(0, 0, 0.1);
         x->set(0, 1, 1);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, -1);
+        y->set(0, 0, 1);
         xs[2] = x;
         ys[2] = y;
 
         x = new Matrix2D(1, 2);
         x->set(0, 0, 1);
-        x->set(0, 1, 0.0001);
+        x->set(0, 1, 0.1);
         y = new Matrix2D(1, 1);
-        y->set(0, 0, -1);
+        y->set(0, 0, 1);
         xs[3] = x;
         ys[3] = y;
 }
 
+
+/*!
+ * \brief string.split工具函数
+ * \param s 待切分字符串
+ * \param delim 切分字符
+ * \param elems 切分后的结果集
+ */
+void split(const std::string &s,
+                char delim,
+                vector<std::string> &elems) {
+        stringstream ss(s);
+        string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+}
+
+
+Matrix2D* parse(string& s){
+        Matrix2D* ret = new Matrix2D(1, 900);
+        vector<string> segs;
+        split(s, ',' , segs);
+        //cout << segs.size()<< endl;
+        //cout << segs[900] << endl;
+        assert(segs.size() == 901);
+        for(size_t i = 0; i < segs.size() - 1; ++i){
+                ret->set(0, i, atof(segs[i].c_str()));
+        }
+        return ret;
+}
+
+void read_vector_file(const string& file_name, vector< pair<Matrix2D*, Matrix2D*> > &dataset, const int& size){
+        ifstream ifs;
+        int cur = 0;
+        ifs.open(file_name.c_str());
+        string line;
+        while(getline(ifs, line) && cur <= size){
+                vector<string> segs;
+                split(line,':', segs);
+                Matrix2D* x = parse(segs[1]);
+
+                Matrix2D* y = new Matrix2D(1, 1);
+                //cout << segs[0] << endl;
+                //cout << "0" << "is" << (segs[0] == "0") << endl;
+                if (segs[0] == "0"){
+                        y->set(0,0,-1);
+                }else if (segs[0] == "1"){
+                        y->set(0,0,1);
+                }else{
+                        cout << "Don't know Y val" << endl;
+                }
+                dataset.push_back(make_pair(x, y));
+                cur++;
+        }
+}
+
 int main()
 {
-        int ta[4] = {2, 4, 1, 1};
+
+        int training_size = 50000;
+        int test_size = 5000;
+
+        int ta[4] = {30*30, 30*30*2, 1, 1};
         vector<int> arch(&ta[0], &ta[0]+3);
         ActivationFunction taf[9] = {TANH, TANH, TANH, TANH, ReLU, ReLU, ReLU, ReLU, TANH};
         vector<ActivationFunction> afs(&taf[0], &taf[0]+2);
         Net net(arch, afs);
+        net.prepare_training(0.001);
 
-        size_t in_size[2] = {1, ta[0]};
+
+        cout << "Loading dataset..." << endl;
+        vector< pair<Matrix2D*, Matrix2D*> > dataset;
+        read_vector_file(string("/home/qin/workspace_c/qt_1/build-mat_dump-Desktop_Qt_Qt_Version_GCC_64bit-Debug/all_shuf.txt"), dataset, training_size+test_size+3);
+
+        cout << "OK" << endl;
+
+        //std::random_shuffle(dataset.begin(), dataset.end());
+
+        cout << "Training..." << endl;
+
+        int cur = 0;
+        int all = dataset.size();
+        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin();
+            it != dataset.end(); ++it, ++cur){
+                net.train(*(*it).first, *(*it).second);
+                cout << cur << "\t/" << all << endl;
+
+                if (cur == training_size) break;
+                /*if (cur % 1000 == 0){
+                        cout << cur << "/" << all << endl;
+                }*/
+        }
+
+
+        cout << "Predicting" << endl;
+        Matrix2D out(1,1);
+        bool label;
+        bool predict;
+
+        int right = 0, wrong = 0;
+
+
+        // Close test
+        cur = 0;
+        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin();
+            it != dataset.begin()+training_size; ++it, ++cur){
+                double l = (*(*it).second).get(0,0);
+                label = l> 0.0? true:false;
+                net.forward(*(*it).first, out);
+                l = out.get(0,0);
+                predict = l> 0.0? true:false;
+
+                //cout << cur << "\t/" << test_size << endl;
+                //cout << "Label = " << (*(*it).second).get(0,0) << " Predict = " << out.get(0,0) << endl;
+                if (label == predict){
+                        right++;
+                }else{
+                        wrong++;
+                }
+        }
+        cout << right << endl << wrong << endl;
+        cur = 0;
+        right = 0;
+        wrong = 0;
+        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin()+training_size;
+            it != dataset.begin()+training_size+test_size; ++it, ++cur){
+                double l = (*(*it).second).get(0,0);
+                label = l> 0.0? true:false;
+                net.forward(*(*it).first, out);
+                l = out.get(0,0);
+                predict = l> 0.0? true:false;
+
+                //cout << cur << "\t/" << test_size << endl;
+                //cout << "Label = " << (*(*it).second).get(0,0) << " Predict = " << out.get(0,0) << endl;
+                if (label == predict){
+                        right++;
+                }else{
+                        wrong++;
+                }
+        }
+        cout << right << endl << wrong << endl;
+
+        // Open test
+
+        /*size_t in_size[2] = {1, ta[0]};
         size_t out_size[2] = {1, 1};
         Matrix2D in(&in_size[0]);
         in.random();
         //in.fill(1);
-        Matrix2D out(&out_size[0]);
+        Matrix2D out(&out_size[0]);*/
 
-        net.prepare_training(0.000001);
 
-        vector<Matrix2D*> xs;
+
+        /*vector<Matrix2D*> xs;
         vector<Matrix2D*> ys;
         build_xor_training_set(xs, ys);
 
@@ -571,8 +713,8 @@ int main()
         cout << in.to_string() << endl;
         cout << out.to_string() << endl;
 
-        for (int var = 0; var < 10000; ++var) {
-                int i= std::rand()%4;
+        for (int var = 0; var < 700000; ++var) {
+                int i= var%4;//std::rand()%4;
                 //cout << "Input & Label ====================" << endl;
                 //
                 //net.forward(*xs[i], out);
@@ -597,6 +739,6 @@ int main()
         //net.forward(in, out);
         t = clock() - t;
         printf ("It took me %ld clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
-        return 0;
+        return 0;*/
 }
 
