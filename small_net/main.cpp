@@ -1,5 +1,6 @@
 /*
-  TODO training
+  DONE training
+  TODO training test
   TODO bias
   */
 
@@ -139,14 +140,13 @@ public:
         friend class Net;
         void prepare_training();
         Layer(size_t * size, ActivationFunction f);
+        Layer(size_t rows, size_t cols, ActivationFunction f);
         void forward(Matrix2D& input);
         void training_forward(Matrix2D& input);
-
-        void reset();
-
+        void set(Matrix2D& m, ActivationFunction f);
         string to_string();
 private:
-
+        void reset();
         void add_bias(Matrix2D& input);
         void apply_activation_function(Matrix2D& output);
         ActivationFunction af;
@@ -157,6 +157,11 @@ private:
         // TODO 未来可以考虑使用vector节约内存使用
         //vector<double> *D;
 };
+
+void Layer::set(Matrix2D& mat, ActivationFunction f){
+        m.clone(mat);
+        af = f;
+}
 
 string Layer::to_string(){
         stringstream ss;
@@ -201,6 +206,12 @@ void Layer::training_forward(Matrix2D &input){
         }
 }
 
+Layer::Layer(size_t rows, size_t cols, ActivationFunction f):m(Matrix2D(rows, cols)){
+        af = f;
+        m.random();
+        D = NULL;
+}
+
 Layer::Layer(size_t *size, ActivationFunction f):m(Matrix2D(size)){
         af = f;
         m.random();
@@ -240,6 +251,7 @@ void Layer::forward(Matrix2D &input){
 
 class Net{
 public:
+        Net(vector<Layer*>* layers);
         Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions);
         void forward(Matrix2D& input, Matrix2D& output);
         void train(Matrix2D& input, Matrix2D& label);
@@ -338,6 +350,14 @@ void Net::train(Matrix2D &input, Matrix2D &label){
         reset();
 }
 
+
+Net::Net(vector<Layer*>* layers){
+        this->layers.clear();
+        for(size_t i = 0; i < layers->size(); ++i){
+                this->layers.push_back((*(*layers)[i]));
+        }
+}
+
 Net::Net(vector<int>& layers_neuron_counts, vector<ActivationFunction>& activation_functions){
         assert(layers_neuron_counts.size() > 1);
         assert(activation_functions.size() == layers_neuron_counts.size() - 1);
@@ -428,7 +448,7 @@ void Matrix2D::resize_data(size_t rows, size_t cols){
         // FIXME This function can only work when the first dimension does NOT change.
         // If resize to a larger size, new created data[i] will need to be initialized.
         data.resize(rows);
-        for(size_t i = 0; i < size[0]; ++i){
+        for(size_t i = 0; i < rows; ++i){
                 data[i].resize(cols);
         }
 }
@@ -561,6 +581,7 @@ void split(const std::string &s,
                 vector<std::string> &elems) {
         stringstream ss(s);
         string item;
+        elems.clear();
         while (std::getline(ss, item, delim)) {
             elems.push_back(item);
         }
@@ -579,6 +600,49 @@ Matrix2D* parse(string& s){
         }
         return ret;
 }
+
+
+// FIXME parse error handle
+void parse_matrix(ifstream& ifs, Matrix2D& mat){
+        string line;
+        getline(ifs, line);
+        vector<string> segs;
+        for(size_t i = 0; i < mat.rows(); ++i){
+                getline(ifs, line);
+                split(line, ',', segs);
+                assert(segs.size() == mat.cols()+1);
+                for(size_t j = 0; j < mat.cols(); ++j){
+                        mat.set(i, j, atof(segs[j].c_str()));
+                }
+        }
+        getline(ifs, line);
+}
+
+// FIXME Set all activation function to TANH.
+Net* load_model(const string& model_file){
+        cout << "Loading model... " << endl;
+        ifstream ifs;
+        ifs.open(model_file.c_str());
+        string line;
+        vector<Layer*>* layers = new vector<Layer*>();
+        Matrix2D current_mat(1, 1);
+        while(getline(ifs, line)){
+                cout << line << endl;
+                vector<string> segs;
+                split(line, ',', segs);
+                int rows = atoi(segs[0].c_str());
+                int cols = atoi(segs[1].c_str());
+                Layer* layer = new Layer(rows, cols, TANH);
+                layers->push_back(layer);
+
+                current_mat.resize(rows, cols);
+                parse_matrix(ifs, current_mat);
+                layer->set(current_mat, TANH);
+        }
+        cout << "Done. " << endl;
+        return new Net(layers);
+}
+
 
 void read_vector_file(const string& file_name, vector< pair<Matrix2D*, Matrix2D*> > &dataset, const int& size){
         ifstream ifs;
@@ -605,92 +669,106 @@ void read_vector_file(const string& file_name, vector< pair<Matrix2D*, Matrix2D*
         }
 }
 
+
+
+void test_model(Net& net,
+                const vector<pair<Matrix2D*, Matrix2D*> >::iterator& begin,
+                const vector<pair<Matrix2D*, Matrix2D*> >::iterator& end){
+        cout << "Predicting" << endl;
+        Matrix2D out(1,1);
+        bool label, predict;
+        int right = 0, wrong = 0;
+        int tp = 0, fp = 0, fn = 0, tn = 0;
+        vector<pair<Matrix2D*, Matrix2D*> >::iterator it = begin;
+        while(it != end){
+                double l = (*(*it).second).get(0,0);
+                label = l> 0.0? true:false;
+                net.forward(*(*it).first, out);
+                l = out.get(0,0);
+                predict = l> 0.0? true:false;
+
+                // Confusion matrix.
+                if (predict == true && label == true){
+                        tp++;
+                }
+                if (predict == true && label == false){
+                        fp++;
+                }
+                if (predict == false && label == true){
+                        fn++;
+                }
+                if (predict == false && label == false){
+                        tn++;
+                }
+                if (label == predict){
+                        right++;
+                }else{
+                        wrong++;
+                }
+                ++it;
+        }
+        cout << "TP = " << tp << endl;
+        cout << "FP = " << fp << endl;
+        cout << "FN = " << fn << endl;
+        cout << "TN = " << tn << endl;
+        cout << right << endl << wrong << endl;
+}
+
+void train_model(Net& net, vector<pair<Matrix2D*, Matrix2D*> >& dataset, int& training_size){
+        cout << "Training..." << endl;
+        for (int var = 0; var < 1; ++var) {
+                int cur = 0;
+                int all = dataset.size();
+                std::random_shuffle(dataset.begin(), dataset.end());
+                for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin();
+                    it != dataset.end(); ++it, ++cur){
+                        net.train(*(*it).first, *(*it).second);
+                        //cout << cur << "\t/" << all << endl;
+
+                        if (cur == training_size) break;
+                        if (cur % 1000 == 0){
+                                cout << cur << "/" << all << endl;
+                        }
+                }
+        }
+
+
+}
+
+
 int main()
 {
 
+        cout << "Program start." << endl;
+        Net* n = load_model("/home/qin/model.txt");
         int training_size = 50000;
         int test_size = 5000;
 
-        int ta[4] = {30*30, 30*30*2, 1, 1};
-        vector<int> arch(&ta[0], &ta[0]+3);
-        ActivationFunction taf[9] = {TANH, TANH, TANH, TANH, ReLU, ReLU, ReLU, ReLU, TANH};
-        vector<ActivationFunction> afs(&taf[0], &taf[0]+2);
-        Net net(arch, afs);
-        net.prepare_training(0.001);
+        int ta[6] = {30*30, 30*30, 30*30/4, 30*30/8, 1, 1};
+        vector<int> arch(&ta[0], &ta[0]+5);
+        ActivationFunction taf[9] = {TANH, TANH, TANH, TANH, TANH, TANH, ReLU, ReLU, TANH};
+        vector<ActivationFunction> afs(&taf[0], &taf[0]+4);
+        //Net net(arch, afs);
+        //net.prepare_training(0.001);
 
 
         cout << "Loading dataset..." << endl;
         vector< pair<Matrix2D*, Matrix2D*> > dataset;
-        read_vector_file(string("/home/qin/workspace_c/qt_1/build-mat_dump-Desktop_Qt_Qt_Version_GCC_64bit-Debug/all_shuf.txt"), dataset, training_size+test_size+3);
-
+        read_vector_file(string("/home/qin/workspace_c/qt_1/build-mat_dump-Desktop_Qt_Qt_Version_GCC_64bit-Debug/all_shuf.txt"), dataset, training_size + test_size + 3);
         cout << "OK" << endl;
 
         //std::random_shuffle(dataset.begin(), dataset.end());
-
-        cout << "Training..." << endl;
-
-        int cur = 0;
-        int all = dataset.size();
-        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin();
-            it != dataset.end(); ++it, ++cur){
-                net.train(*(*it).first, *(*it).second);
-                cout << cur << "\t/" << all << endl;
-
-                if (cur == training_size) break;
-                /*if (cur % 1000 == 0){
-                        cout << cur << "/" << all << endl;
-                }*/
-        }
+        //train_model(net, dataset, training_size);
 
 
-        cout << "Predicting" << endl;
-        Matrix2D out(1,1);
-        bool label;
-        bool predict;
+        //cout << "Close test:" << endl;
+        //test_model(*n, dataset.begin(), dataset.begin()+training_size);
+        cout << "Open test:" << endl;
+        test_model(*n, dataset.begin()+training_size, dataset.begin()+training_size+100);
+        cout << "----------------------------------------------------------------" << endl;
 
-        int right = 0, wrong = 0;
 
-
-        // Close test
-        cur = 0;
-        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin();
-            it != dataset.begin()+training_size; ++it, ++cur){
-                double l = (*(*it).second).get(0,0);
-                label = l> 0.0? true:false;
-                net.forward(*(*it).first, out);
-                l = out.get(0,0);
-                predict = l> 0.0? true:false;
-
-                //cout << cur << "\t/" << test_size << endl;
-                //cout << "Label = " << (*(*it).second).get(0,0) << " Predict = " << out.get(0,0) << endl;
-                if (label == predict){
-                        right++;
-                }else{
-                        wrong++;
-                }
-        }
-        cout << right << endl << wrong << endl;
-        cur = 0;
-        right = 0;
-        wrong = 0;
-        for(vector<pair<Matrix2D*, Matrix2D*> >::iterator it = dataset.begin()+training_size;
-            it != dataset.begin()+training_size+test_size; ++it, ++cur){
-                double l = (*(*it).second).get(0,0);
-                label = l> 0.0? true:false;
-                net.forward(*(*it).first, out);
-                l = out.get(0,0);
-                predict = l> 0.0? true:false;
-
-                //cout << cur << "\t/" << test_size << endl;
-                //cout << "Label = " << (*(*it).second).get(0,0) << " Predict = " << out.get(0,0) << endl;
-                if (label == predict){
-                        right++;
-                }else{
-                        wrong++;
-                }
-        }
-        cout << right << endl << wrong << endl;
-
+        //net.dump();
         // Open test
 
         /*size_t in_size[2] = {1, ta[0]};
