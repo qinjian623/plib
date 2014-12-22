@@ -30,7 +30,7 @@ void sn_relu(double& d){
 }
 
 void sn_nil(double& d){
-        return;
+        //return;
 }
 
 void sn_tanh(double& d){

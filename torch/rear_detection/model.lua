@@ -16,7 +16,7 @@ height = scale_height - 4
 ninputs = nfeats*width*height
 
 -- hidden units, filter sizes (for ConvNet only):
-nstates = {8,16,32}
+nstates = {32,32,64}
 filtsize = 5
 poolsize = 2
 normkernel = image.gaussian1D(7)
@@ -50,8 +50,8 @@ model:add(nn.SpatialMaxPooling(poolsize,poolsize))
 model:add(nn.SpatialSubtractiveNormalization(nstates[2], normkernel))
 
 -- stage 3 : standard 2-layer neural network
-model:add(nn.Reshape(nstates[2]*63*88))--*148*198))--72*97))
-model:add(nn.Linear(nstates[2]*63*88, nstates[3]))
+model:add(nn.Reshape(nstates[2]*9))--*148*198))--72*97))
+model:add(nn.Linear(nstates[2]*9, nstates[3]))
 model:add(nn.Tanh())
 model:add(nn.Linear(nstates[3], noutputs))
 

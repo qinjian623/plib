@@ -13,15 +13,24 @@ function load_jpg(fdir, fname)
 end
 
 
-function load_jpgs_in_dir(dir, featn)
+function load_jpgs_in_dir(dir, featn,fbegin, fend)
    local files = list_files(dir)
    local file_names = {}
+
+   local count = 0
+
+   local all_file_names = {}
    for fname in files do
+      table.insert(all_file_names, fname)
+   end
+   for i = fbegin, fend do
+      fname = all_file_names[i]
+   --for fname in files do
       table.insert(file_names, fname)
    end
 
    local size = #file_names
-   local data = torch.Tensor(size, featn, 300, 400)
+   local data = torch.Tensor(size, featn, 30, 30)
 
    local i = 1
    for i = 1, size do
@@ -34,7 +43,7 @@ function merge_tensor(list0, list1)
    local featn = (#list0)[2]
    local size0 = (#list0)[1]
    local size1 = (#list1)[1]
-   local ret = torch.Tensor(size0 + size1, featn, 300, 400)
+   local ret = torch.Tensor(size0 + size1, featn, 30, 30)
    for i = 1, size0 do
       ret[i] = list0[i]
    end
@@ -58,9 +67,9 @@ function merge_list(list0, list1)
 end
 
 
-function load_pos_and_neg(pos_dir, neg_dir)
-   local pos = load_jpgs_in_dir(pos_dir, 3)
-   local neg = load_jpgs_in_dir(neg_dir, 3)
+function load_pos_and_neg(pos_dir, neg_dir, fbegin, fend)
+   local pos = load_jpgs_in_dir(pos_dir, 3, fbegin, fend)
+   local neg = load_jpgs_in_dir(neg_dir, 3, fbegin, fend)
    local posl = torch.Tensor((#pos)[1], 1)
    local negl = torch.Tensor((#neg)[1], 1)
    posl:fill(1)
@@ -71,6 +80,8 @@ function load_pos_and_neg(pos_dir, neg_dir)
    return all, alll
 end
 
+-- all, alll =
+-- load_pos_and_neg('/home/qin/Documents/git/plib/opencv/pos',
+-- '/home/qin/Documents/git/plib/opencv/neg')
 
--- all, alll = load_pos_and_neg('/home/qin/Documents/git/plib/opencv/pos', '/home/qin/Documents/git/plib/opencv/neg')
-all, alll = load_pos_and_neg('/home/qin/car_rear/pos', '/home/qin/car_rear/neg')
+

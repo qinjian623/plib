@@ -98,7 +98,7 @@ function train()
    -- do one epoch
    print('==> doing epoch on training data:')
    print("==> online epoch # " .. epoch .. ' [batchSize = ' .. opt.batchSize .. ']')
-   -- TODO hardcode... 44
+
    s = all:size(1)
    for t = 1,s,1 do
       -- disp progress
