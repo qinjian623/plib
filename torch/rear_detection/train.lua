@@ -102,8 +102,9 @@ function train()
    s = all:size(1)
    for t = 1,s,1 do
       -- disp progress
-      xlua.progress(t, s)
-
+      if t%100 == 0 then
+	 xlua.progress(t, s)
+      end
       -- create mini batch
       local inputs = {}
       local targets = {}
