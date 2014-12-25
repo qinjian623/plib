@@ -9,14 +9,13 @@ print '==> define parameters'
 noutputs = 2
 
 -- input dimensions
-nfeats = 1
 width = scale_width - 4
 height = scale_height - 4
 
 ninputs = nfeats*width*height
 
 -- hidden units, filter sizes (for ConvNet only):
-nstates = {32,32,64}
+nstates = {64,64,128}
 filtsize = 5
 poolsize = 2
 normkernel = image.gaussian1D(7)
@@ -38,7 +37,7 @@ print '==> construct model'
 model = nn.Sequential()
 
 -- stage 1 : filter bank -> squashing -> Max pooling -> normalization
-model:add(nn.SpatialConvolutionMap(nn.tables.random(nfeats, nstates[1], 1), filtsize, filtsize))
+model:add(nn.SpatialConvolutionMap(nn.tables.random(nfeats, nstates[1], nfeats), filtsize, filtsize))
 -- model:add(nn.SpatialConvolutionMM(nfeats, nstates[1], filtsize, filtsize))
 model:add(nn.Tanh())
 model:add(nn.SpatialMaxPooling(poolsize,poolsize))
