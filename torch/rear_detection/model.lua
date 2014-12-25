@@ -9,7 +9,7 @@ print '==> define parameters'
 noutputs = 2
 
 -- input dimensions
-nfeats = 3
+nfeats = 1
 width = scale_width - 4
 height = scale_height - 4
 
@@ -38,7 +38,7 @@ print '==> construct model'
 model = nn.Sequential()
 
 -- stage 1 : filter bank -> squashing -> Max pooling -> normalization
-model:add(nn.SpatialConvolutionMap(nn.tables.random(nfeats, nstates[1], 3), filtsize, filtsize))
+model:add(nn.SpatialConvolutionMap(nn.tables.random(nfeats, nstates[1], 1), filtsize, filtsize))
 -- model:add(nn.SpatialConvolutionMM(nfeats, nstates[1], filtsize, filtsize))
 model:add(nn.Tanh())
 model:add(nn.SpatialMaxPooling(poolsize,poolsize))

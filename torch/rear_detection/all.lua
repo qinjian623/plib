@@ -20,7 +20,8 @@ require 'gfx.go'
 
 
 function preprocess(im)
-   return mtt.lcn(image.scale(im, scale_width, scale_height))
+   return mtt.lcn(image.rgb2y(im))
+   --return mtt.lcn(image.scale(im, scale_width, scale_height))
 end
 
 function test(negs_dir, poss_dir)
