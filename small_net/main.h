@@ -3,6 +3,8 @@
   TODO training test
   TODO bias
   */
+#ifndef MAIN_H
+#define MAIN_H
 
 #include <algorithm>
 #include <fstream>
@@ -735,3 +737,4 @@ void train_model(Net& net, vector<pair<Matrix2D*, Matrix2D*> >& dataset, int& tr
 
 }
 
+#endif
