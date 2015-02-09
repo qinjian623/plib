@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Very simple tutorials for my YY."/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2015-02-09T16:04+0800"/>
+<meta name="generated" content="2015-02-09T19:49+0800"/>
 <meta name="author" content="Jian Qin"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -224,10 +224,11 @@ for the JavaScript code below.
 <li><a href="#sec-1-2">1.2 基本的开发环境</a>
 <ul>
 <li><a href="#sec-1-2-1">1.2.1 编辑器的选择</a></li>
+<li><a href="#sec-1-2-2">1.2.2 解释器的说明</a></li>
 </ul></li>
 </ul>
 </li>
-<li><a href="#sec-2">2 教材内容</a>
+<li><a href="#sec-2">2 基本语法</a>
 <ul>
 <li><a href="#sec-2-1">2.1 表达式</a></li>
 <li><a href="#sec-2-2">2.2 可以通用的表达式 - 变量</a></li>
@@ -294,28 +295,112 @@ for the JavaScript code below.
 <h4 id="sec-1-2-1"><span class="section-number-4">1.2.1</span> 编辑器的选择</h4>
 <div class="outline-text-4" id="text-1-2-1">
 
-<p>    编辑器
-</p></div>
+<p>    可以使用任何的<a href="https://zh.wikipedia.org/wiki/文本编辑器">文本编辑器</a>, 可以考虑的如下:
+</p><ol>
+<li>自带的记事本
+</li>
+<li>Notepad++: <a href="http://notepad-plus-plus.org/">http://notepad-plus-plus.org/</a>
+</li>
+<li>atom: <a href="https://atom.io/">https://atom.io/</a>
+</li>
+<li>vim: <a href="http://www.vim.org/download.php">http://www.vim.org/download.php</a>
+</li>
+<li>emacs: <a href="http://mirror.keystealth.org/gnu/emacs/windows/">http://mirror.keystealth.org/gnu/emacs/windows/</a>
+</li>
+</ol>
+
+</div>
+
+</div>
+
+<div id="outline-container-1-2-2" class="outline-4">
+<h4 id="sec-1-2-2"><span class="section-number-4">1.2.2</span> 解释器的说明</h4>
+<div class="outline-text-4" id="text-1-2-2">
+
+<p>    解释器可以使用两种模式: 1. 交互模式. 2. 批处理模式
+    两者的不同如下:
+</p><ul>
+<li id="sec-1-2-2-1">交互模式<br/>
+     使用irb, 进入后会有如下的显示:
+
+
+
+<pre class="src src-bash">irb(main):001:0&gt; 
+</pre>
+
+<p>
+     在这一模式下, 每写一行(敲回车后), 解释器都会立即执行. 这样, 每一步的执行的结果都可以知道.
+</p></li>
+</ul>
+<ul>
+<li id="sec-1-2-2-2">批处理模式<br/>
+     使用 ruby 命令, 在Windows下, 编写文件后保存成.rb文件, 点击就会是批处理模式. 批处理模式会一次性执行.rb文件中的所有内容, 或者遇到文件中出现错误, 或者执行完毕, 也有可能会永远运行下去(你可以选择强行停止).
+</li>
+</ul>
+</div>
 </div>
 </div>
 
 </div>
 
 <div id="outline-container-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> 教材内容</h2>
+<h2 id="sec-2"><span class="section-number-2">2</span> 基本语法</h2>
 <div class="outline-text-2" id="text-2">
 
-
+<p>  编程语言作为一门语言, 和普通的中文\英文等具有很多的相似点. 学习一门语言的过程都是一样的(认字-&gt;认词-&gt;学习语法-&gt;读文章-&gt;写文章), Ruby的字符都是英文字符, 不需要额外学习. Ruby中需要专门学习的词语也很少, 在100以内, 很多词语也是语法的组成部分之一, 所以语法是Ruby语言的基础.
+</p>
 </div>
 
 <div id="outline-container-2-1" class="outline-3">
 <h3 id="sec-2-1"><span class="section-number-3">2.1</span> 表达式</h3>
 <div class="outline-text-3" id="text-2-1">
 
-<p>   以一元二次方程为例 \(ax^2+bx+c = 0\)
-   &hellip;
-   解固定的方程
-</p></div>
+<p>   表达式可以认为是编程语言中的一句话. 可以认为是来自于数学表达式, 比如: \(1+2, 3*14+2\) 等等. 
+</p>
+<p>
+   表达式是一个表示运算的过程, 而其结果则是运算的目的, 可以写一个解一个一元二次方程的表达式, 如下, 我们来解 \(x^2 + 4x + 1 = 0\) 这一方程两个解的表达式就是:
+   $$x_1 = \frac{-4 + \sqrt{4^2 - 4\times 1\times 1}}{2}$$
+   $$x_2 = \frac{-4 - \sqrt{4^2 - 4\times 1\times 1}}{2}$$
+</p>
+<p>
+   如果我们需要使用Ruby来写出上面的两个表达式, 则需要注意以下几点:
+</p><ol>
+<li>乘法在Ruby中的形式为 1*2
+</li>
+<li>除法在Ruby中的形式为 32/8
+</li>
+<li>开平方的形式则为 Math.sqrt(3.5)
+</li>
+<li>平方的形式则为 3**2 (3的平方)
+</li>
+</ol>
+
+
+
+<p>
+   如此, 上面的两个表达式在Ruby中会是如下:
+</p>
+
+
+<pre class="src src-ruby">x1 = (-4+<span style="color: #98f5ff;">Math</span>.sqrt(4**2 - 4*1*1) )/2
+x2 = (-4-<span style="color: #98f5ff;">Math</span>.sqrt(4**2 - 4*1*1) )/2
+</pre>
+
+<p>
+   如果将这两句话复制, 放入irb中分别执行, 结果会分别是
+</p>
+
+
+<pre class="src src-bash">irb(main):003:0&gt; x1 = (-4+Math.sqrt(4**2 - 4*1*1) )/2
+=&gt; -0.2679491924311228
+irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
+=&gt; -3.732050807568877
+</pre>
+
+<p>
+   你会发现, 每执行一句表达式, 表达式的结果都会在irb的模式中显示出来.
+</p>
+</div>
 
 </div>
 
@@ -373,7 +458,7 @@ for the JavaScript code below.
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2015-02-09T16:04+0800</p>
+<p class="date">Date: 2015-02-09T19:49+0800</p>
 <p class="author">Author: Jian Qin</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
