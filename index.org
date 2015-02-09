@@ -1,3 +1,5 @@
+#+STYLE: <link rel="stylesheet" type="text/css" href="./style/yinwang0.css" />
+
 Very simple tutorials for my YY.
 * 安装和配置
 ** 安装
