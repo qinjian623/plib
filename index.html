@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Very short Ruby tutorials for my YY."/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2015-02-10T09:59+0800"/>
+<meta name="generated" content="2015-02-13T17:52+0800"/>
 <meta name="author" content="Jian Qin"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -232,16 +232,39 @@ for the JavaScript code below.
 <li><a href="#sec-2">2 基本语法</a>
 <ul>
 <li><a href="#sec-2-1">2.1 表达式</a></li>
-<li><a href="#sec-2-2">2.2 可以通用的表达式 - 变量</a></li>
-<li><a href="#sec-2-3">2.3 更加复杂的表达式 - 程序的流程</a></li>
-<li><a href="#sec-2-4">2.4 处理复杂的表达式 - 模块化 - 函数/子例程/代码快/方法</a></li>
-<li><a href="#sec-2-5">2.5 逻辑的基石 - 类型系统</a></li>
-<li><a href="#sec-2-6">2.6 外界的交互 - IO系统</a></li>
+<li><a href="#sec-2-2">2.2 可以通用的表达式 - 变量</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1 变量 vs 常量</a></li>
+<li><a href="#sec-2-2-2">2.2.2 变量表达式</a></li>
+<li><a href="#sec-2-2-3">2.2.3 Ruby中通用解的表达式</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-3">2.3 更加复杂的表达式 - 程序的流程</a>
+<ul>
+<li><a href="#sec-2-3-1">2.3.1 判断语句 - if</a></li>
+<li><a href="#sec-2-3-2">2.3.2 逻辑系统</a></li>
+<li><a href="#sec-2-3-3">2.3.3 while</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-4">2.4 处理复杂的表达式 - 模块化 - 函数/子例程/代码快/方法</a>
+<ul>
+<li><a href="#sec-2-4-1">2.4.1 实数解与复数解</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-5">2.5 解释与可读性 - 注释</a></li>
+<li><a href="#sec-2-6">2.6 程序正确的基石 - 类型系统</a></li>
 <li><a href="#sec-2-7">2.7 常用类型 - string</a></li>
-<li><a href="#sec-2-8">2.8 现实世界的投射 - 面向对象</a></li>
-<li><a href="#sec-2-9">2.9 乐高积木 - 模块化</a></li>
-<li><a href="#sec-2-10">2.10 编写自己的网站 - Rails</a></li>
-<li><a href="#sec-2-11">2.11 Meta Programming</a></li>
+<li><a href="#sec-2-8">2.8 外界的交互 - IO系统</a></li>
+<li><a href="#sec-2-9">2.9 常用类型 - 标准库</a></li>
+<li><a href="#sec-2-10">2.10 现实世界的投射 - 面向对象</a></li>
+<li><a href="#sec-2-11">2.11 与代码质量的长期斗争 - 版本控制/复查/测试</a></li>
+<li><a href="#sec-2-12">2.12 乐高积木 - 模块化</a></li>
+<li><a href="#sec-2-13">2.13 编写自己的网站 - Rails</a>
+<ul>
+<li><a href="#sec-2-13-1">2.13.1 HTTP协议的过程</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-14">2.14 Meta Programming</a></li>
 </ul>
 </li>
 </ul>
@@ -396,9 +419,9 @@ x2 = (-4-<span style="color: #98f5ff;">Math</span>.sqrt(4**2 - 4*1*1) )/2
 </p>
 
 
-<pre class="src src-bash">irb(main):003:0&gt; x1 = (-4+Math.sqrt(4**2 - 4*1*1) )/2
+<pre class="src src-sh"><span style="color: #daa520;">irb</span>(main):003:0&gt; x1 = (-4+Math.sqrt(4**2 - 4*1*1) )/2
 =&gt; -0.2679491924311228
-irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
+<span style="color: #daa520;">irb</span>(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 =&gt; -3.732050807568877
 </pre>
 
@@ -413,8 +436,85 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 <h3 id="sec-2-2"><span class="section-number-3">2.2</span> 可以通用的表达式 - 变量</h3>
 <div class="outline-text-3" id="text-2-2">
 
-<p>   解通项公式的方程
+<p>   利用上面的表达式, 已经可以用于解一元二次方程, 但是不同的方程都需要输入整个表达式, 为了增加灵活性, 我们需要引入一个更加抽象<sup><a class="footref" name="fnr-.1" href="#fn-.1">1</a></sup>的概念: 变量
+</p>
+
+</div>
+
+<div id="outline-container-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> 变量 vs 常量</h4>
+<div class="outline-text-4" id="text-2-2-1">
+
+<p>    变量是一个可以变化的值, 对应的, 不变化的值会是常数, 在数学中最明显的一个常量就是圆周率: \(\pi\) .
 </p></div>
+
+</div>
+
+<div id="outline-container-2-2-2" class="outline-4">
+<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> 变量表达式</h4>
+<div class="outline-text-4" id="text-2-2-2">
+
+<p>    由于变量是一次抽象, 我们需要一个符号系统来表达这样的一次抽象, 形成一个更加通用的表达式. 事实上, 一元二次方程的通用表示就是存在变量的表达式:
+    $$ax^2+bx+c=0 $$
+    对应的, 其解的通用表达式就是:
+    $$ x_{0,1}=\frac{-b \pm \sqrt{b^2 - 4\times a\times c}}{2\times a}$$
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2-2-3" class="outline-4">
+<h4 id="sec-2-2-3"><span class="section-number-4">2.2.3</span> Ruby中通用解的表达式</h4>
+<div class="outline-text-4" id="text-2-2-3">
+
+<p>    按照上面的通用表达式的表示, 我们就可以写出两个解在Ruby中的通用表示
+</p>
+
+
+<pre class="src src-ruby">x1 = (-b+<span style="color: #98f5ff;">Math</span>.sqrt(b**2 - 4*a*c) )/ (2*a)
+x2 = (-b-<span style="color: #98f5ff;">Math</span>.sqrt(b**2 - 4*a*c) )/ (2*a)
+</pre>
+
+
+<p>    
+    当然, 如果直接输入这一表达式, 会出现错误:
+</p>
+
+
+<pre class="src src-sh"><span style="color: #daa520;">irb</span>(main):005:0&gt; x1 = (-b+Math.sqrt(b**2 - 4*a*c) )/ (2*a)
+NameError: undefined local variable or method <span style="color: #fa8072;">`b' for main:Object</span>
+<span style="color: #fa8072;">        from (irb):5</span>
+<span style="color: #fa8072;">        from /usr/bin/irb:12:in `</span>&lt;main&gt;<span style="color: #deb887;">'</span>
+</pre>
+
+
+<p>    
+    这一错误的原因在于, 上述表达式的=右侧, 是抽象的, 我们尚未制定 a, b, c三者的值, 而=右侧希望获得的是一个具体的值. 为此, 我们需要指定a, b, c的具体值. 在irb中的过程如下:
+</p>
+
+
+<pre class="src src-sh"><span style="color: #daa520;">irb</span>(main):014:0&gt; a = 1
+=&gt; 1
+<span style="color: #daa520;">irb</span>(main):015:0&gt; b = 4
+=&gt; 4
+<span style="color: #daa520;">irb</span>(main):016:0&gt; c = 1
+=&gt; 1
+<span style="color: #daa520;">irb</span>(main):017:0&gt; x1 = (-b+Math.sqrt(b**2 - 4*a*c) )/ (2*a)
+=&gt; -0.2679491924311228
+<span style="color: #daa520;">irb</span>(main):018:0&gt; 
+</pre>
+
+<p>
+    x2的表达式也类似, 但是由于在之前已经有了指定, 就不再需要重新指定 a, b, c三者的值了. 这样, 之后的计算就不再需要根据a, b, c的不同值重新输入整个表达式了, 只需要重新指定a, b, c然后使用相同的通用表达式就可以获得方程的解了.
+</p>
+<p>
+    我们可以将变量理解为一个桶, 根据需要, 往桶里放东西. 那么上面的通用表达式可以认为是针对名字分别叫做a b c的三个桶中装的东西的生产线. 我们每次将不同的原料往桶里装, 然后送到生产线中, 经过一番加工后就会获得生产线的产品, 这里, 我们叫这条生产线为"获得一元二次方程的解", 生产线的原料则是"组成方程的三个数值", 此时作为工人的我们, 需要知道生产线的使用说明: "按照严格的顺序, 将三个数值放入对应的桶里, 启动生产, 就会获得结果". 考虑到, 这一生产线其实也是我们设计+建造的, 从这个角度来看, 我们又是设计和生成这一生产线的工程师+工人.
+</p>
+<p>    
+    其实, 我们连每次重新输入通用表达式都觉得太麻烦. 这其实就是进一步抽象的动机(懒惰). 我们可以将通用表达式也指定到一个变量上, 后续, 比如起个名字叫做 "生产线1", 以后就不用每次都把整个生成线都写出来了. 这一懒惰的行为, 我们暂时不表, 后面会再深入"懒惰"这个主题.
+</p>
+</div>
+</div>
 
 </div>
 
@@ -422,9 +522,51 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 <h3 id="sec-2-3"><span class="section-number-3">2.3</span> 更加复杂的表达式 - 程序的流程</h3>
 <div class="outline-text-3" id="text-2-3">
 
-<p>   不断的解方程
-   判断方程无解的情况
-</p></div>
+<p>   如果我们在irb中输入下面的内容, 就会出现错误:
+</p>
+
+
+<pre class="src src-sh"><span style="color: #daa520;">irb</span>(main):026:0&gt; a = 4
+=&gt; 4
+<span style="color: #daa520;">irb</span>(main):027:0&gt; b = 1
+=&gt; 1
+<span style="color: #daa520;">irb</span>(main):028:0&gt; c = 3
+=&gt; 3
+<span style="color: #daa520;">irb</span>(main):029:0&gt; (-b+Math.sqrt(b**2 - 4*a*c) )/ (2*a)
+Math::DomainError: Numerical argument is out of domain - <span style="color: #deb887;">"sqrt"</span>
+        from (irb):29:in <span style="color: #fa8072;">`sqrt'</span>
+<span style="color: #fa8072;">        from (irb):29</span>
+<span style="color: #fa8072;">        from /usr/bin/irb:12:in `</span>&lt;main&gt;<span style="color: #deb887;">'</span>
+</pre>
+
+<p>
+   因为, 方程存在无解的情况, 我们不能对负数进行开方(起码目前不能). 那么, 问题来了, 我们如何判断方程是否有解和无解呢?
+</p>
+</div>
+
+<div id="outline-container-2-3-1" class="outline-4">
+<h4 id="sec-2-3-1"><span class="section-number-4">2.3.1</span> 判断语句 - if</h4>
+<div class="outline-text-4" id="text-2-3-1">
+
+
+</div>
+
+</div>
+
+<div id="outline-container-2-3-2" class="outline-4">
+<h4 id="sec-2-3-2"><span class="section-number-4">2.3.2</span> 逻辑系统</h4>
+<div class="outline-text-4" id="text-2-3-2">
+
+</div>
+
+</div>
+
+<div id="outline-container-2-3-3" class="outline-4">
+<h4 id="sec-2-3-3"><span class="section-number-4">2.3.3</span> while</h4>
+<div class="outline-text-4" id="text-2-3-3">
+
+</div>
+</div>
 
 </div>
 
@@ -432,12 +574,20 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 <h3 id="sec-2-4"><span class="section-number-3">2.4</span> 处理复杂的表达式 - 模块化 - 函数/子例程/代码快/方法</h3>
 <div class="outline-text-3" id="text-2-4">
 
+
+</div>
+
+<div id="outline-container-2-4-1" class="outline-4">
+<h4 id="sec-2-4-1"><span class="section-number-4">2.4.1</span> 实数解与复数解</h4>
+<div class="outline-text-4" id="text-2-4-1">
+
+</div>
 </div>
 
 </div>
 
 <div id="outline-container-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> 逻辑的基石 - 类型系统</h3>
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> 解释与可读性 - 注释</h3>
 <div class="outline-text-3" id="text-2-5">
 
 </div>
@@ -445,10 +595,12 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 </div>
 
 <div id="outline-container-2-6" class="outline-3">
-<h3 id="sec-2-6"><span class="section-number-3">2.6</span> 外界的交互 - IO系统</h3>
+<h3 id="sec-2-6"><span class="section-number-3">2.6</span> 程序正确的基石 - 类型系统</h3>
 <div class="outline-text-3" id="text-2-6">
 
-</div>
+<p>   就像我们对家人的称呼, 父母<sup><a class="footref" name="fnr-.2" href="#fn-.2">2</a></sup>可以认为是常量, 因为我们的父母不会有变化, 出生时就决定了.
+   与物理单位的类似性
+</p></div>
 
 </div>
 
@@ -461,7 +613,7 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 </div>
 
 <div id="outline-container-2-8" class="outline-3">
-<h3 id="sec-2-8"><span class="section-number-3">2.8</span> 现实世界的投射 - 面向对象</h3>
+<h3 id="sec-2-8"><span class="section-number-3">2.8</span> 外界的交互 - IO系统</h3>
 <div class="outline-text-3" id="text-2-8">
 
 </div>
@@ -469,7 +621,7 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 </div>
 
 <div id="outline-container-2-9" class="outline-3">
-<h3 id="sec-2-9"><span class="section-number-3">2.9</span> 乐高积木 - 模块化</h3>
+<h3 id="sec-2-9"><span class="section-number-3">2.9</span> 常用类型 - 标准库</h3>
 <div class="outline-text-3" id="text-2-9">
 
 </div>
@@ -477,7 +629,7 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 </div>
 
 <div id="outline-container-2-10" class="outline-3">
-<h3 id="sec-2-10"><span class="section-number-3">2.10</span> 编写自己的网站 - Rails</h3>
+<h3 id="sec-2-10"><span class="section-number-3">2.10</span> 现实世界的投射 - 面向对象</h3>
 <div class="outline-text-3" id="text-2-10">
 
 </div>
@@ -485,16 +637,60 @@ irb(main):004:0&gt; x2 = (-4-Math.sqrt(4**2 - 4*1*1) )/2
 </div>
 
 <div id="outline-container-2-11" class="outline-3">
-<h3 id="sec-2-11"><span class="section-number-3">2.11</span> Meta Programming</h3>
+<h3 id="sec-2-11"><span class="section-number-3">2.11</span> 与代码质量的长期斗争 - 版本控制/复查/测试</h3>
 <div class="outline-text-3" id="text-2-11">
 
 </div>
+
+</div>
+
+<div id="outline-container-2-12" class="outline-3">
+<h3 id="sec-2-12"><span class="section-number-3">2.12</span> 乐高积木 - 模块化</h3>
+<div class="outline-text-3" id="text-2-12">
+
+</div>
+
+</div>
+
+<div id="outline-container-2-13" class="outline-3">
+<h3 id="sec-2-13"><span class="section-number-3">2.13</span> 编写自己的网站 - Rails</h3>
+<div class="outline-text-3" id="text-2-13">
+
+
+</div>
+
+<div id="outline-container-2-13-1" class="outline-4">
+<h4 id="sec-2-13-1"><span class="section-number-4">2.13.1</span> HTTP协议的过程</h4>
+<div class="outline-text-4" id="text-2-13-1">
+
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-2-14" class="outline-3">
+<h3 id="sec-2-14"><span class="section-number-3">2.14</span> Meta Programming</h3>
+<div class="outline-text-3" id="text-2-14">
+
+
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<p class="footnote"><sup><a class="footnum" name="fn-.1" href="#fnr-.1">1</a></sup> 编写程序就是一个抽象与具体互相转化的过程.
+</p>
+
+
+<p class="footnote"><sup><a class="footnum" name="fn-.2" href="#fnr-.2">2</a></sup> 我们只考虑在现有技术条件下, 生物学意义上的父母.
+</p></div>
+</div>
+</div>
+
 </div>
 </div>
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2015-02-10T09:59+0800</p>
+<p class="date">Date: 2015-02-13T17:52+0800</p>
 <p class="author">Author: Jian Qin</p>
 <p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.3f with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
