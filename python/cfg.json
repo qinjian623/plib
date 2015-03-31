@@ -1,0 +1,10 @@
+{
+    "arrive_hour":9,
+    "leave_hour":18,
+    "min_overtime":1,
+    "specific_workday": {},
+    "specific_holiday": {},
+    "is_skipped_row": "lambda row: not row or row[3] == '出勤时间'",
+    "fields_functions": "{'timestamp': lambda row, time_col=3: row[time_col], 'name': lambda row, name_col=2: row[name_col]}",
+    "time_formatter": "lambda time_str: strptime(time_str, '%Y-%m-%d %H:%M')"
+}
