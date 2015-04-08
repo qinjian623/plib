@@ -2,7 +2,7 @@ import csv
 import json
 import calendar
 from datetime import date
-from time import gmtime, strftime, localtime, strptime
+from time import strptime
 
 # Global Settings.
 # 会在载入配置时全部重新生成, 可以全部删除, 留此仅作为说明作用
@@ -17,6 +17,7 @@ fields_functions = {
 }
 is_skipped_row = lambda row: not row or row[3] == '出勤时间'
 time_formatter_function = lambda time_str: strptime(time_str, "%Y-%m-%d %H:%M")
+
 
 class WorkingTime:
     def __init__(self, year, month, day):
@@ -52,6 +53,7 @@ class FileFormatError(Exception):
     def __str__(self):
         return repr(self.value)
 
+
 class TimeSheetDailyReport:
     def __init__(self):
         self.late = False
@@ -60,24 +62,13 @@ class TimeSheetDailyReport:
         self.early_leave_hours = 0
         self.overtime = False
         self.overtime_hours = 0
-        
         self.absent = False
         self.late_in_ten_minutes = False
         self.data_missed = False
 
     def to_json(self):
-        json_obj = {
-            "late": self.late,
-            "late_time_hours":self.late_time_hours,
-            "early_leave":self.early_leave,
-            "early_leave_hours":self.early_leave_hours,
-            "overtime":self.overtime,
-            "overtime_hours":self.overtime_hours,
-            "absent":self.absent,
-            "late_in_ten_minutes":self.late_in_ten_minutes,
-            "data_missed":self.data_missed
-            }
-        return json.dumps(json_obj, sort_keys = True)
+        return json.dumps(self.__dict__, sort_keys=True)
+
 
 class TimeSheetMonthlyReport:
     def __init__(self):
@@ -88,14 +79,8 @@ class TimeSheetMonthlyReport:
         self.data_missed_count = 0
 
     def to_json(self):
-        json_obj = {
-            "late_in_ten_minutes_count":self.late_in_ten_minutes_count,
-            "total_leaving_time":self.total_leaving_time,
-            "total_overtime":self.total_overtime,
-            "total_absent":self.total_absent,
-            "data_missed_count":self.data_missed_count
-            }
-        return json.dumps(json_obj, sort_keys = True)
+        return json.dumps(self.__dict__, sort_keys=True)
+
 
 class MonthRange:
     def __init__(self, year):
@@ -179,6 +164,7 @@ def generate_monthly_report(month_time_sheet_report):
         monthly_report.total_overtime += daily_report.overtime_hours
     return monthly_report
 
+
 def holiday_daily_report(daily_working_time, daily_report):
     overtime = daily_working_time.end_hour - daily_working_time.begin_hour
     if overtime > 0:
@@ -196,7 +182,7 @@ def workday_daily_report(daily_working_time, daily_report):
         if late > 0:
             daily_report.late = True
             daily_report.late_time_hours = late
-            if daily_working_time.begin_time.tm_hour == 9 and daily_working_time.begin_time.tm_min <=10:
+            if daily_working_time.begin_time.tm_hour == 9 and daily_working_time.begin_time.tm_min <= 10:
                 daily_report.late_in_ten_minutes = True
         if early_leave > 0:
             daily_report.early_leave = True
@@ -210,11 +196,11 @@ def generate_daily_report(daily_working_time, daily_report, spec_workday, spec_h
     if (daily_working_time.end_hour - daily_working_time.begin_hour < 0):
         daily_report.data_missed = True
         return
-    
     if (daily_working_time.is_weekend() or daily_working_time._day in spec_holiday) and (daily_working_time._day not in spec_workday):
         holiday_daily_report(daily_working_time, daily_report)
     else:
         workday_daily_report(daily_working_time, daily_report)
+
 
 def generate_time_sheet_report(wts):
     time_sheet_report = {}
@@ -249,14 +235,16 @@ def load_config(json_config):
         else:
             fields_functions = {
                 "timestamp": lambda row, time_col=3: row[time_col],
-                "name": lambda row, name_col=2: row[name_col] }
+                "name": lambda row, name_col=2: row[name_col]}
         if "time_formatter" in json_obj:
             time_formatter_function = eval(json_obj["time_formatter"])
         else:
             time_formatter_function = lambda time_str: strptime(time_str, "%Y-%m-%d %H:%M")
 
+
 def output_plain_text_report(time_sheet_report):
-    for ynm, reports in time_sheet_report.items():
+    for ynm in sorted(time_sheet_report.keys()):
+        reports = time_sheet_report[ynm]
         print (ynm)
         print ('=====================================================================')
         mr = reports[0]
@@ -269,7 +257,8 @@ def output_plain_text_report(time_sheet_report):
         print ("以下为详细信息,")
 
         for day, report in enumerate(reports):
-            if day == 0: continue
+            if day == 0:
+                continue
             output_text = "本月第{0}日:\t".format(day)
             if report.late:
                 output_text += "迟到{0}小时".format(report.late_time_hours)
@@ -280,22 +269,30 @@ def output_plain_text_report(time_sheet_report):
             if report.early_leave:
                 output_text += "早退{0}小时. ".format(report.early_leave_hours)
             if report.overtime:
-                output_text +="加班{0}小时. ".format(report.overtime_hours)
+                output_text += "加班{0}小时. ".format(report.overtime_hours)
             if report.absent:
-                output_text +="全天请假, 或者无打卡记录. "
+                output_text += "全天请假, 或者无打卡记录. "
             if report.data_missed:
-                output_text +="数据不完整. "
+                output_text += "数据不完整. "
             if output_text == "本月第{0}日:\t".format(day):
                 output_text += "..."
             print(output_text)
 
+
+def output_csv(report):
+    with open(csv, 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=' ',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow(['Spam'] * 5 + ['Baked Beans'])
+        spamwriter.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
+
+
 import sys
 cfg_json = sys.argv[1]
 csv_file = sys.argv[2]
+
 load_config(cfg_json)
 wts = parse_csv(csv_file, fields_functions, is_skipped_row)
 wts.discretize()
 report = generate_time_sheet_report(wts)
 output_plain_text_report(report)
-
-
