@@ -1,0 +1,14 @@
+{
+    "arrive_hour":9, // 标准到达时间
+    "leave_hour":18, // 标准离开时间
+    "min_overtime":1,// 最小的加班时间
+    "specific_workday": {}, // 指定的工作日
+    "specific_holiday": {201503: [1, 7, 8],
+                         201504: [4, 5, 6],
+                         201505: [1, 2, 3],
+                         201506: [20, 21, 22]}, //指定的假日
+
+    "is_skipped_row": "lambda row: not row or row[3] == '出勤时间'", // 需要跳过的行的判断
+    "fields_functions": "{'timestamp': lambda row, time_col=3: row[time_col], 'name': lambda row, name_col=2: row[name_col]}", // 获得指定列的方法
+    "time_formatter": "lambda time_str: strptime(time_str, '%Y-%m-%d %H:%M')" // 时间读取格式的方法
+}

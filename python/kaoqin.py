@@ -65,6 +65,7 @@ class TimeSheetDailyReport:
         self.absent = False
         self.late_in_ten_minutes = False
         self.data_missed = False
+        self.overtime_pair = (0, 0)
 
     def to_json(self):
         return json.dumps(self.__dict__, sort_keys=True)
@@ -170,6 +171,7 @@ def holiday_daily_report(daily_working_time, daily_report):
     if overtime > 0:
         daily_report.overtime = True
         daily_report.overtime_hours = overtime
+        daily_report.overtime_pair = (daily_working_time.begin_hour, daily_working_time.end_hour)
 
 
 def workday_daily_report(daily_working_time, daily_report):
@@ -190,6 +192,7 @@ def workday_daily_report(daily_working_time, daily_report):
         if overtime >= MIN_OVERTIME:
             daily_report.overtime = True
             daily_report.overtime_hours = overtime
+            daily_report.overtime_pair = (LEAVE_HOUR + 0.5, daily_working_time.end_hour)
 
 
 def generate_daily_report(daily_working_time, daily_report, spec_workday, spec_holiday):
@@ -205,8 +208,9 @@ def generate_daily_report(daily_working_time, daily_report, spec_workday, spec_h
 def generate_time_sheet_report(wts):
     time_sheet_report = {}
     for ynm, v in wts._working_time_pairs.items():
-        spec_workday = SPECIFIC_WORKDAY[ynm] if ynm in SPECIFIC_WORKDAY else []
-        spec_holiday = SPECIFIC_HOLIDAY[ynm] if ynm in SPECIFIC_HOLIDAY else []
+        ynm_str = str(ynm)
+        spec_workday = SPECIFIC_WORKDAY[ynm_str] if ynm_str in SPECIFIC_WORKDAY else []
+        spec_holiday = SPECIFIC_HOLIDAY[ynm_str] if ynm_str in SPECIFIC_HOLIDAY else []
 
         time_sheet_report[ynm] = [TimeSheetDailyReport() for i in range(len(v))]
         time_sheet_report[ynm][0] = TimeSheetMonthlyReport()
@@ -242,24 +246,24 @@ def load_config(json_config):
             time_formatter_function = lambda time_str: strptime(time_str, "%Y-%m-%d %H:%M")
 
 
-def output_plain_text_report(time_sheet_report):
+def plain_text_report(time_sheet_report):
     for ynm in sorted(time_sheet_report.keys()):
         reports = time_sheet_report[ynm]
-        print (ynm)
-        print ('=====================================================================')
+        output_text = "{0}\n".format(ynm)
+        output_text += '=====================================================================\n'
         mr = reports[0]
-        print ("本月共计加班{0}小时, 请假调休等共计{1}小时, 其中有{2}次为10分钟以内迟到, 按照0.5小时计入, 全天请假{3}次(也有可能为数据丢失), 另有{4}天数据不完整无法计算, 不计入以上统计.".format(
+        output_text += "本月共计加班{0}小时, 请假调休等共计{1}小时, 其中有{2}次为10分钟以内迟到, 按照0.5小时计入, 全天请假{3}次(也有可能为数据丢失), 另有{4}天数据不完整无法计算, 不计入以上统计.\n".format(
             mr.total_overtime,
             mr.total_leaving_time,
             mr.late_in_ten_minutes_count,
             mr.total_absent,
-            mr.data_missed_count))
-        print ("以下为详细信息,")
+            mr.data_missed_count)
+        output_text += "以下为详细信息,\n"
 
         for day, report in enumerate(reports):
             if day == 0:
                 continue
-            output_text = "本月第{0}日:\t".format(day)
+            output_text += "本月第{0}日:\t".format(day)
             if report.late:
                 output_text += "迟到{0}小时".format(report.late_time_hours)
                 if report.late_in_ten_minutes:
@@ -269,30 +273,43 @@ def output_plain_text_report(time_sheet_report):
             if report.early_leave:
                 output_text += "早退{0}小时. ".format(report.early_leave_hours)
             if report.overtime:
-                output_text += "加班{0}小时. ".format(report.overtime_hours)
+                output_text += "加班{0}小时, ".format(report.overtime_hours)
+                output_text += "加班时间{0}.".format(report.overtime_pair)
             if report.absent:
                 output_text += "全天请假, 或者无打卡记录. "
             if report.data_missed:
                 output_text += "数据不完整. "
-            if output_text == "本月第{0}日:\t".format(day):
-                output_text += "..."
-            print(output_text)
+            output_text += "\n"
+        return output_text
 
 
-def output_csv(report):
-    with open(csv, 'w', newline='') as csvfile:
-        spamwriter = csv.writer(csvfile, delimiter=' ',
-                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(['Spam'] * 5 + ['Baked Beans'])
-        spamwriter.writerow(['Spam', 'Lovely Spam', 'Wonderful Spam'])
-
+def output_csv_report(csv_file_path, time_sheet_report):
+    with open(csv_file_path, 'w') as csvfile:
+        csvwriter = csv.writer(csvfile, delimiter=',',
+                               quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        header = ["年月", "日", "迟到", "十分钟内", "早退", "加班", "加班时间段", "数据问题"]
+        csvwriter.writerow(header)
+        for ynm in sorted(time_sheet_report.keys()):
+            reports = time_sheet_report[ynm]
+            for day, report in enumerate(reports):
+                if day == 0:
+                    continue
+                row = [ynm, day,
+                       8 if report.absent else report.late_time_hours,
+                       report.late_in_ten_minutes,
+                       report.early_leave_hours,
+                       report.overtime_hours,
+                       "{0}-{1}".format(report.overtime_pair[0],
+                                        report.overtime_pair[1]) if report.overtime else "",
+                       "数据有误,请检查" if report.data_missed else ""]
+                csvwriter.writerow(row)
 
 import sys
 cfg_json = sys.argv[1]
 csv_file = sys.argv[2]
-
 load_config(cfg_json)
 wts = parse_csv(csv_file, fields_functions, is_skipped_row)
 wts.discretize()
 report = generate_time_sheet_report(wts)
-output_plain_text_report(report)
+print (plain_text_report(report))
+output_csv_report("./r.csv", report)
