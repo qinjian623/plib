@@ -1,6 +1,6 @@
 require 'digest/md5'
 require 'socket'
-code_book = "/home/qin/weka.log"
+code_book = "../server.rb"
 port = 2001
 
 code_book_str = File.read(code_book)
@@ -9,7 +9,7 @@ md5sum = Digest::MD5.hexdigest(code_book_str)
 server = TCPServer.new port
 i = 0
 loop do
-  #puts "listening..."
+  puts "listening..."
   c = server.accept
   c_md5sum = c.gets
 
@@ -30,9 +30,10 @@ loop do
   }
   c_encode = c.read 10
   if c_encode.length != 10
+    puts 'error'
     return
   end
-  if (c_encode.bytes <=> encode_str) != 0
+  if (c_encode.bytes.to_a <=> encode_str) != 0
     puts key
     puts c_encode
     puts encode_str

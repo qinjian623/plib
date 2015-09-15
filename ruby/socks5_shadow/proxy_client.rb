@@ -1,8 +1,8 @@
 require 'socket'
 require 'digest/md5'
 
-code_book = "/home/qin/weka.log"
-addr = 'localhost'
+code_book = "../server.rb"
+addr = 'localhost' #'45.79.69.247'
 port = 2001
 code_book_str = File.read(code_book)
 md5sum = Digest::MD5.hexdigest(code_book_str)
