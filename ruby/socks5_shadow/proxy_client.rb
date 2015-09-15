@@ -2,7 +2,7 @@ require 'socket'
 require 'digest/md5'
 
 code_book = "../server.rb"
-addr = 'localhost' #'45.79.69.247'
+addr = ARGV[0]
 port = 2001
 code_book_str = File.read(code_book)
 md5sum = Digest::MD5.hexdigest(code_book_str)
@@ -26,6 +26,7 @@ s.puts offset.to_s + "," + length.to_s
 s.write encode_str.map{|b| b.chr}.join
 #s.write 0
 
+puts s.gets
 s.close
 
 

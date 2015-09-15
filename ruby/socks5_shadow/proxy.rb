@@ -40,6 +40,7 @@ loop do
   else
     puts "SUCC"
   end
+  c.puts "SUCC"
   c.close
   puts i
   i = i+1
