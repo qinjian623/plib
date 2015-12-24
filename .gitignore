@@ -13,4 +13,5 @@ clojure/repl-port
 .*
 #*#
 *#
+*~
 clojure/#lib.clj#
