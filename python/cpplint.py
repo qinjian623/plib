@@ -41,7 +41,7 @@ def get_options(opt_file, options):
 
 
 def get_filenames():
-    return ["/home/qin/Documents/git/mapbarcv/makefile/phodopus/main.cpp"]
+    pass
 
 whole_header_check_funcs = []
 whole_file_check_funcs = []
@@ -100,6 +100,7 @@ def load_plugins():
             line_header_check_funcs,
             whole_file_check_funcs,
             line_file_check_funcs)
+    os.chdir("../")
 
 
 opt_file = ""
