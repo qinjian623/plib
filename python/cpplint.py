@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import codecs
 from enum import Enum
 import importlib
@@ -109,6 +110,7 @@ options = Options()
 
 def main():
     load_plugins()
+    # TODO 增加配置文件读取
     get_options(opt_file, options)
     filenames = sys.argv[1:]
     for filename in filenames:
