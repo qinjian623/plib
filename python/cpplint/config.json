@@ -1,0 +1,8 @@
+{
+    "ok": 1,
+    "limit_max_line_width": {"max": 150},
+
+    "check_indent": {
+        "indent_offset": 8
+    }
+}

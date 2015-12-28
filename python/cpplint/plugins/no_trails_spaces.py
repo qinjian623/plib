@@ -6,6 +6,10 @@ def register(header_whole, header_line, file_whole, file_line):
     header_whole.append(check_whole_file)
 
 
+def get_opionts(options):
+    print options["ok"]
+
+
 def check_whole_file(lines, filename, extension, options):
     for idx, line in enumerate(lines):
         check_line(line, idx, filename, extension, options)
