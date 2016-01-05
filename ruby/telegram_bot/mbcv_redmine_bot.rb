@@ -1,5 +1,38 @@
 require 'httpclient'
 require 'json'
+require 'digest'
+
+def new_user (username, mail, password)
+  @contex[username] = {}
+  @contex[username][:mail] = mail
+  @contex[username][:password] = password
+end
+
+def command_register(message)
+  username = message['from']['username']
+  mo = /\/(\w*) *(\w*@\w*\.com)\s*(\w*)/.match(message['text'])
+  if mo
+    mail = mo[2]
+    password = Digest::SHA256.digest mo[3]
+    if not @contex.key? username
+      new_user username, mail, password
+      return "New user added."
+    else
+      if  @contex[username][:password] == password
+        @contex[username][:mail] = mail
+        return "User mail reset done."
+      else
+        return "Wrong password."
+      end
+    end
+  else
+    return "Wrong command format."
+  end
+end
+
+def command_reminder(message)
+  
+end
 
 @key = ARGV[0]
 
@@ -22,14 +55,15 @@ def get_command(message)
   return (/\/(\w*)/ .match message['text'])[1]
 end
 
-def command_register(message)
-  puts "Register from" + message['from']['username']
-end
 
 def dispatch(command, message)
-  if methods().include? ('command_'+command).to_sym
-    send 'command_'+command, message
-  else
+  begin
+    response = send 'command_'+command, message
+    call(:sendMessage,
+         {'chat_id' => message['chat']['id'],
+          'text' => response,
+          'reply_to_message_id' => message['message_id']})
+  rescue NoMethodError
     puts "Command: " + command + " not found."
   end
 end
