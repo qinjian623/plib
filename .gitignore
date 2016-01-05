@@ -9,6 +9,7 @@ __pycache__
 .lein-deps-sum
 *.pyc
 
+*.db
 clojure/repl-port
 .*
 #*#
