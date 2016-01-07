@@ -2,6 +2,7 @@ require 'httpclient'
 require 'json'
 require 'digest'
 require 'erb'
+
 @redmine_domain = "http://192.168.1.244:3000"
 @redmine_methods = {
   :issues => "http://192.168.1.244:3000/issues.json",
@@ -31,7 +32,7 @@ def command_start(message)
 end
 
 def command_issues(message)
-  id = message['from']['id']
+  id = message.from.id
   rm_username = @contex[id][:mail]
   rm_passowrd = @contex[id][:password]
   json = call_redmine(:issues, rm_username, rm_passowrd, {'assigned_to_id' => 'me'})
