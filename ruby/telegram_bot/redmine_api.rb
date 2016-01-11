@@ -60,12 +60,19 @@ module Redmine
   end
 
   def self.append_time(user, name, issue_id, hours, comments, activity_id)
-    TimeEntry.new(
-      :issues_id => issue_id,
-      :hours => hours,
+    TimeEntry.user = user
+    TimeEntry.password = name
+    te = TimeEntry.new(
+      :issue_id => issue_id,
+      :hours => hours / 3600,
       :comments => comments,
       :activity_id => activity_id
     )
+    if te.save
+      return "OK"
+    else
+      return puts te.errors.full_messages
+    end
   end
 
   def self.list_activity(user, name)

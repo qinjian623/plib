@@ -118,17 +118,17 @@ def command_log_off(message)
   if @contex[user].key? :log_begin
     @contex[user][:log_time] = Time.now - @contex[user][:log_begin]
     @contex[user].delete :log_begin
-    return "Log off: " + @contex[user][:log_time]/3600 + " hours"
+    return "Log off: " + @contex[user][:log_time]/3600.to_s + " hours"
   else
     @contex[user][:log_begin] = Time.now
   end
 end
 
 def command_add_log(message)
-  user = message.from.id
+  id = message.from.id
   rm_username = @contex[id][:mail]
   rm_passowrd = @contex[id][:password]
-  if not @contex[id].key? :current_issue
+  if not @contex[id].key? :current_issue_
     return "Current issue is not set yet."
   end
   current_issue = @contex[id][:current_issue_]
@@ -140,10 +140,11 @@ def command_add_log(message)
   if segs.length == 2
     comments = segs.last
   end
-  
+
+  user = id
   if @contex[user].key? :log_time
     if @contex[user].key? :current_activity
-      append_time(rm_username, rm_passowrd,
+      Redmine.append_time(rm_username, rm_passowrd,
                   current_issue, @contex[user][:log_time], comments,
                   @contex[user][:current_activity])
     else
