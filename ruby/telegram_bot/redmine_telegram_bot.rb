@@ -215,7 +215,7 @@ end
 
 bot = TelegramBot.new(token:  ARGV[0])
 bot.get_updates(fail_silently: true) do |message|
-    load_contex
+  load_contex
   puts "@#{message.from.username}: #{message.text}"
   command = (/\/(\w*)/ .match message.text)[1]
   message.reply do |reply|
