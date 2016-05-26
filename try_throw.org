@@ -1,0 +1,104 @@
+* Refs
+  1. http://www.on-time.com/ddj0011.htm
+  2. http://www.catb.org/jargon/html/D/Duffs-device.html
+  3. http://www.di.unipi.it/~nids/docs/longjump_try_trow_catch.html
+  4. https://zh.wikipedia.org/wiki/Setjmp.h
+  5. http://web.eecs.utk.edu/~huangj/cs360/360/notes/Setjmp/lecture.html
+  6. 
+
+* Src
+  #+BEGIN_SRC c
+  int
+main(int argc, char** argv)
+{
+    do {
+        jmp_buf ex_buf__;
+        switch(_setjmp(ex_buf__)) {
+        case 0:
+            while(1) {
+                {
+                    printf("In Try Statement\n");
+                    longjmp(ex_buf__, (2));
+                    printf("I do not appear\n");
+                }
+                break;
+            case (1):
+                {printf("Got Foo!\n");}
+                break;
+            case (2):
+                {printf("Got Bar!\n");}
+                break;
+            case (3):
+                {printf("Got Baz!\n");}
+                break;
+            }
+        default:
+            {{printf("...et in arcadia Ego\n");}break;}
+        }
+    }while(0);
+    return 0;
+}
+  #+END_SRC
+
+  #+BEGIN_SRC c
+  #include <stdio.h>
+#include <setjmp.h>
+
+int main(int argc, char *argv[])
+{
+    {
+        jmp_buf env;
+        switch(setjmp(env)){
+        case 0:
+            {   
+                // Normal
+                int i = 0;
+                printf("throw now\n");
+                longjmp(env, 2);
+            }
+            break;
+        case 1:
+            // Handler
+            break;
+        case 2:
+            // Handler
+            printf("Got 2!\n");
+            break;
+        }
+        printf("%d\n", i);
+        printf("Finally!\n");
+    }
+    return 0;
+}
+
+  #+END_SRC
+#+BEGIN_SRC c
+#include "try_throw.h"
+
+#define FOO_EXCEPTION (1)
+#define BAR_EXCEPTION (2)
+#define BAZ_EXCEPTION (3)
+
+
+int
+main(int argc, char** argv)
+{
+    TRY{
+        int i = 0;
+        printf("In Try Statement\n");
+        THROW( BAR_EXCEPTION );
+        printf("I do not appear\n");
+    }CATCH( FOO_EXCEPTION ){
+        printf("Got Foo!\n");
+    }CATCH( BAR_EXCEPTION ){
+        printf("Got Bar!\n");
+    }CATCH( BAZ_EXCEPTION ){
+        printf("Got Baz!\n");
+    }FINALLY{
+        printf("%d\n", i);
+        printf("...et in arcadia Ego\n");
+    }ETRY;
+    return 0;
+}
+
+#+END_SRC
