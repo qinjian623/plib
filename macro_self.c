@@ -6,23 +6,27 @@
         jmp_buf env__; \
         switch(setjmp(env__)){ \
         case 0:
-            
-
 #define catch(x) break; case x:
 #define throw(x) longjmp(env__, x)
 #define finally break;} 
 #define endtry }}
 #define endfinally }
+
+void sfunc(void){
+    throw(1);
+}
+
 int main(int argc, char *argv[])
 {
     try{
-        throw(1);
-    }catch(1){
+        printf("asdfasdfasdf hello world\n");
+        sfunc();
+    }catch(3){
         printf("1111\n");
-    }/*finally{
+    }finally{
         printf("finally\n");
-        }*/
-    endtry;
+    }
+    endfinally;
     return 0;
 }
 

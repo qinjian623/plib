@@ -6,6 +6,12 @@
   5. http://web.eecs.utk.edu/~huangj/cs360/360/notes/Setjmp/lecture.html
   6. 
 
+* 问题
+  1. 子函数的throw问题无法解决
+  2. 多层抛出问题?
+  3. 返回值无法规范的问题.
+  4. 无法处理继承关系
+  5. 
 * Src
   #+BEGIN_SRC c
   int
